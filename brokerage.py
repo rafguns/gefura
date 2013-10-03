@@ -16,7 +16,7 @@ from networkx.algorithms.centrality.betweenness import \
     _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
 
 
-__all__ = ["global_brokerage"]
+__all__ = ["global_brokerage", "local_brokerage"]
 
 
 def global_brokerage(G, groups, weight=None, normalized=True):
@@ -84,7 +84,7 @@ def global_brokerage(G, groups, weight=None, normalized=True):
             factor = sum(len(A - {s}) * len(B - {s})
                          for A, B in group_combinations)
             if G.is_directed():
-                # Count both A -> BG and BG -> A
+                # Count both A -> B and B -> A
                 factor *= 2
             try:
                 BG[s] /= factor
@@ -92,3 +92,60 @@ def global_brokerage(G, groups, weight=None, normalized=True):
                 BG[s] = 0
 
     return BG
+
+
+def _local_brokerage(G, groups, weight=None, normalized=True):
+    BL = dict.fromkeys(G, 0)
+    # Make mapping node -> group.
+    # This assumes that groups are disjoint.
+    group_of = {n: group for group in groups for n in group}
+
+    for s in G:
+        if weight is None:
+            S, P, sigma = _single_source_shortest_path_basic(G, s)
+        else:
+            S, P, sigma = _single_source_dijkstra_path_basic(G, s, weight)
+
+        # Accumulation
+        delta = dict.fromkeys(G, 0)
+        while S:
+            w = S.pop()
+            different_groups = group_of[s] != group_of[w]
+            for v in P[w]:
+                sigmas = sigma[v] / sigma[w]
+                i = 1 if different_groups else 0
+                delta[v] += sigmas * (i + delta[w])
+            if w != s and not different_groups:
+                BL[w] += delta[w]
+
+    # Normalize
+    if normalized:
+        # All combinations of 2 groups
+        for s in G:
+            own_group_size = len(group_of[s])
+            factor = (own_group_size - 1) * (len(G) - own_group_size)
+
+            try:
+                BL[s] /= factor
+            except ZeroDivisionError:
+                BL[s] = 0
+
+    return BL
+
+
+def local_brokerage(G, groups, weight=None, normalized=True, direction='out'):
+    if not G.is_directed() or direction == 'out':
+        return _local_brokerage(G, groups, weight, normalized)
+
+    if direction not in ('in', 'all'):
+        raise ValueError("direction should be either 'in', 'out' or 'all'.")
+
+    H = G.reverse()
+    BL_in = _local_brokerage(H, groups, weight, normalized)
+    if direction == 'in':
+        return BL_in
+    else:
+        # 'all' is the sum of 'in' and 'out'
+        BL_out = _local_brokerage(G, groups, weight, normalized)
+        norm = 2 if normalized else 1  # Count both A -> B and B -> A
+        return {k: (BL_in[k] + BL_out[k]) / norm for k in BL_in}
