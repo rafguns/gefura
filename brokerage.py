@@ -9,6 +9,8 @@ For the moment, this module only implements global brokerage. Local and
 external brokerage may be added later on.
 
 """
+from __future__ import division
+
 from itertools import combinations
 from networkx.algorithms.centrality.betweenness import \
     _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
@@ -47,7 +49,7 @@ def global_brokerage(G, groups, weight=None, normalized=True):
     {0: 0.0, 1: 0.5, 2: 0.8, 3: 0.6, 4: 0.0}
 
     """
-    BG = dict.fromkeys(G, 0.)
+    BG = dict.fromkeys(G, 0)
     # Make mapping node -> group.
     # This assumes that groups are disjoint.
     group_of = {n: group for group in groups for n in group}
@@ -62,7 +64,7 @@ def global_brokerage(G, groups, weight=None, normalized=True):
         delta = dict.fromkeys(G, 0)
         while S:
             w = S.pop()
-            i = 1. if group_of[s] != group_of[w] else 0.
+            i = 1 if group_of[s] != group_of[w] else 0
             for v in P[w]:
                 sigmas = sigma[v] / sigma[w]
                 delta[v] += sigmas * (i + delta[w])
@@ -72,7 +74,7 @@ def global_brokerage(G, groups, weight=None, normalized=True):
     # Since all shortest paths are counted twice if undirected, we divide by 2.
     if not G.is_directed():
         for s in G:
-            BG[s] /= 2.
+            BG[s] /= 2
 
     # Normalize
     if normalized:
@@ -87,6 +89,6 @@ def global_brokerage(G, groups, weight=None, normalized=True):
             try:
                 BG[s] /= factor
             except ZeroDivisionError:
-                BG[s] = 0.
+                BG[s] = 0
 
     return BG

@@ -1,3 +1,5 @@
+from __future__ import division
+
 import networkx as nx
 
 from brokerage import global_brokerage
@@ -13,9 +15,8 @@ def test_3_groups():
     edges = [('a1', 'a2'), ('a1', 'a3'), ('a2', 'a3'), ('a3', 'b1'),
              ('a2', 'b2'), ('b1', 'b2'), ('b2', 'c1'), ('b1', 'c3'),
              ('b2', 'c2'), ('c2', 'c3')]
-    known_vals = {'a1': 0., 'a2': 13. / 48, 'a3': 17. / 96,
-                  'b1': 29. / 90, 'b2': 5. / 9,
-                  'c1': 0., 'c2': 5. / 96, 'c3': 5. / 96}
+    known_vals = {'a1': 0, 'a2': 13 / 48, 'a3': 17 / 96, 'b1': 29 / 90,
+                  'b2': 5 / 9, 'c1': 0, 'c2': 5 / 96, 'c3': 5 / 96}
     G = nx.Graph()
     G.add_edges_from(edges)
     groups = [{'a1', 'a2', 'a3'}, {'b1', 'b2'}, {'c1', 'c2', 'c3'}]
@@ -26,8 +27,8 @@ def test_3_groups():
 def test_line_graph():
     edges = [('a1', 'b1'), ('b1', 'b2'), ('b2', 'c1'), ('c1', 'c2'),
              ('c2', 'b3'), ('b3', 'a2')]
-    known_vals = {'a1': 0, 'a2': 0., 'b1': 4. / 12, 'b2': 6. / 12, 'b3': 4. / 12,
-                  'c1': 6. / 11, 'c2': 5. / 11}
+    known_vals = {'a1': 0, 'a2': 0, 'b1': 4 / 12, 'b2': 6 / 12, 'b3': 4 / 12,
+                  'c1': 6 / 11, 'c2': 5 / 11}
     G = nx.Graph()
     G.add_edges_from(edges)
     groups = [{'a1', 'a2'}, {'b1', 'b2', 'b3'}, {'c1', 'c2'}]
@@ -39,7 +40,7 @@ def test_2_groups_unnormalized():
     edges = [('b1', 'a1'), ('a1', 'a2'), ('a1', 'b2'),
              ('a2', 'a3'), ('a3', 'b2')]
     groups = [{'a1', 'a2', 'a3'}, {'b1', 'b2'}]
-    known_vals = {'a1': 2.5, 'a2': 0.5, 'a3': 0.5, 'b1': 0.0, 'b2': 0.5}
+    known_vals = {'a1': 2.5, 'a2': 0.5, 'a3': 0.5, 'b1': 0, 'b2': 0.5}
     G = nx.Graph()
     G.add_edges_from(edges)
 
@@ -66,13 +67,13 @@ class TestDiGraph:
         self.groups = [{'a1', 'a2'}, {'b1', 'b2'}]
 
     def test_unnormalized(self):
-        known_vals = {'a1': 1.5, 'a2': 1., 'b1': 0.5, 'b2': 0.}
+        known_vals = {'a1': 1.5, 'a2': 1, 'b1': 0.5, 'b2': 0}
 
         B = global_brokerage(self.G, self.groups, normalized=False)
         assert_dict_almost_equal(B, known_vals)
 
     def test_normalized(self):
-        known_vals = {'a1': 0.375, 'a2': 0.25, 'b1': 0.125, 'b2': 0.}
+        known_vals = {'a1': 0.375, 'a2': 0.25, 'b1': 0.125, 'b2': 0}
 
         assert_dict_almost_equal(global_brokerage(self.G, self.groups),
                                  known_vals)
@@ -87,15 +88,15 @@ class TestWeightedGraph:
         self.groups = [{'a1', 'a2'}, {'b1', 'b2', 'b3'}]
 
     def test_with_weights(self):
-        known_vals = {'a1': 0.5, 'a2': 1. / 6, 'b1': 0.5, 'b2':
-                      0.125, 'b3': 0.125}
+        known_vals = {'a1': 0.5, 'a2': 1 / 6,
+                      'b1': 0.5, 'b2': 0.125, 'b3': 0.125}
 
         B = global_brokerage(self.G, self.groups, weight='weight')
         assert_dict_almost_equal(B, known_vals)
 
     def test_without_weights(self):
-        known_vals = {'a1': 1. / 3, 'a2': 1. / 3, 'b1': 0.25, 'b2':
-                      0.25, 'b3': 0.}
+        known_vals = {'a1': 1 / 3, 'a2': 1 / 3,
+                      'b1': 0.25, 'b2': 0.25, 'b3': 0}
 
         B = global_brokerage(self.G, self.groups)
         assert_dict_almost_equal(B, known_vals)
