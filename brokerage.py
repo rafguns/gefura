@@ -81,8 +81,8 @@ def global_brokerage(G, groups, weight=None, normalized=True):
         # All combinations of 2 groups
         group_combinations = list(combinations(groups, 2))
         for s in G:
-            factor = sum(len(A - {s}) * len(BG - {s})
-                         for A, BG in group_combinations)
+            factor = sum(len(A - {s}) * len(B - {s})
+                         for A, B in group_combinations)
             if G.is_directed():
                 # Count both A -> BG and BG -> A
                 factor *= 2
