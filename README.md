@@ -3,9 +3,9 @@ brokerage
 
 brokerage is a small Python module that implements brokerage measures, i.e. indicators that characterize to what extent a node forms a 'bridge' between groups in a network. 
 
-These measures are adaptations of [betweenness centrality](http://en.wikipedia.org/wiki/Betweenness_centrality) where only shortest paths between nodes from different groups are taken into account. They were previously known as 'Q-measures'. Because that term is overloaded (e.g., Q modularity), we now simply refer to them as brokerage measures.
+These measures are adaptations of [betweenness centrality](http://en.wikipedia.org/wiki/Betweenness_centrality) where only shortest paths between nodes from different groups are taken into account. The brokerage measures are also known as 'Q-measures' (ot to be mistaken with e.g. modularity Q).
 
-For the moment, this module only implements global brokerage. Local and external brokerage may be added later on.
+This module implements global and local brokerage. Both directed and undirected, as well as weighted and unweighted networks are supported.
 
 
 Definition
