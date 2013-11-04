@@ -11,6 +11,7 @@ undirected, as well as weighted and unweighted networks are supported.
 """
 from __future__ import division
 
+from collections import defaultdict
 from itertools import combinations
 from networkx.algorithms.centrality.betweenness import \
     _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
@@ -51,9 +52,11 @@ def global_brokerage(G, groups, weight=None, normalized=True):
 
     """
     BG = dict.fromkeys(G, 0)
-    # Make mapping node -> group.
-    # This assumes that groups are disjoint.
-    group_of = {n: group for group in groups for n in group}
+    # Make mapping node -> groups.
+    group_of = defaultdict(set)
+    for i, group in enumerate(groups):
+        for n in group:
+            group_of[n].add(i)
 
     for s in G:
         if weight is None:
@@ -65,7 +68,7 @@ def global_brokerage(G, groups, weight=None, normalized=True):
         delta = dict.fromkeys(G, 0)
         while S:
             w = S.pop()
-            i = 1 if group_of[s] != group_of[w] else 0
+            i = 1 if group_of[s].symmetric_difference(group_of[w]) else 0
             for v in P[w]:
                 sigmas = sigma[v] / sigma[w]
                 delta[v] += sigmas * (i + delta[w])
@@ -82,7 +85,7 @@ def global_brokerage(G, groups, weight=None, normalized=True):
         # All combinations of 2 groups
         group_combinations = list(combinations(groups, 2))
         for s in G:
-            factor = sum(len(A - {s}) * len(B - {s})
+            factor = sum(len(A - {s}) * len(B - {s}) - len(A & B - {s})
                          for A, B in group_combinations)
             if G.is_directed():
                 # Count both A -> B and B -> A

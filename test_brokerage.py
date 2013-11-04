@@ -182,3 +182,14 @@ def test_local_directed():
 
     for d, vals in (('out', known_out), ('in', known_in), ('all', known_all)):
         assert_dict_almost_equal(local_brokerage(G, groups, direction=d), vals)
+
+
+def test_overlap():
+    edges = [(1, 2), (2, 3), (3, 4)]
+    groups = [{1, 2, 3}, {2, 3, 4}, {4}]
+    G = nx.Graph()
+    G.add_edges_from(edges)
+    known = {1: 0, 2: 3, 3: 4, 4: 0}
+
+    assert_dict_almost_equal(known, global_brokerage(G, groups,
+                                                     normalized=False))
