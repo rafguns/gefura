@@ -163,6 +163,16 @@ def test_local_line_graph():
 
 
 @raises(ValueError)
+def test_wrong_node_set_global():
+    global_brokerage(nx.Graph(), [{1}])
+
+
+@raises(ValueError)
+def test_wrong_node_set_local():
+    local_brokerage(nx.Graph(), [{1}])
+
+
+@raises(ValueError)
 def test_local_directed_wrong_direction_value():
     local_brokerage(nx.DiGraph(), [], direction="foobar")
 

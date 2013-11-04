@@ -20,6 +20,15 @@ from networkx.algorithms.centrality.betweenness import \
 __all__ = ["global_brokerage", "local_brokerage"]
 
 
+def _groups_per_node(groups):
+    """Make mapping from a node to its group(s)"""
+    d = defaultdict(set)
+    for i, group in enumerate(groups):
+        for n in group:
+            d[n].add(i)
+    return d
+
+
 def global_brokerage(G, groups, weight=None, normalized=True):
     """Determine global brokerage measure of each node
 
@@ -51,11 +60,9 @@ def global_brokerage(G, groups, weight=None, normalized=True):
 
     """
     BG = dict.fromkeys(G, 0)
-    # Make mapping node -> groups.
-    group_of = defaultdict(set)
-    for i, group in enumerate(groups):
-        for n in group:
-            group_of[n].add(i)
+    group_of = _groups_per_node(groups)
+    if set(group_of) != set(G):
+        raise ValueError("Nodes in G and nodes in groups should be the same!")
 
     for s in G:
         if weight is None:
@@ -103,9 +110,9 @@ def global_brokerage(G, groups, weight=None, normalized=True):
 
 def _local_brokerage(G, groups, weight=None, normalized=True):
     BL = dict.fromkeys(G, 0)
-    # Make mapping node -> group.
-    # This assumes that groups are disjoint.
-    group_of = {n: group for group in groups for n in group}
+    group_of = _groups_per_node(groups)
+    if set(group_of) != set(G):
+        raise ValueError("Nodes in G and nodes in groups should be the same!")
 
     for s in G:
         if weight is None:
