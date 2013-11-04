@@ -184,12 +184,47 @@ def test_local_directed():
         assert_dict_almost_equal(local_brokerage(G, groups, direction=d), vals)
 
 
-def test_overlap():
-    edges = [(1, 2), (2, 3), (3, 4)]
-    groups = [{1, 2, 3}, {2, 3, 4}, {4}]
+def test_overlap_simple():
     G = nx.Graph()
-    G.add_edges_from(edges)
-    known = {1: 0, 2: 3, 3: 4, 4: 0}
+    G.add_edges_from([(1, 2), (2, 3)])
+    groups = [{1, 2}, {2, 3}]
+    known = {1: 0, 2: 1, 3: 0}
+    assert_dict_almost_equal(known, global_brokerage(G, groups))
 
-    assert_dict_almost_equal(known, global_brokerage(G, groups,
-                                                     normalized=False))
+
+class TestOverlappingLineGraph:
+    def setup(self):
+        edges = [(1, 2), (2, 3), (3, 4)]
+        self.groups = [{1, 2, 3}, {2, 3, 4}, {4}]
+        self.G = nx.Graph()
+        self.G.add_edges_from(edges)
+
+    def test_unnormalized(self):
+        known = {1: 0, 2: 3, 3: 5, 4: 0}
+        assert_dict_almost_equal(known, global_brokerage(self.G, self.groups,
+                                                         normalized=False))
+
+    def test_normalized(self):
+        known = {1: 0, 2: 0.5, 3: 5 / 6, 4: 0}
+        assert_dict_almost_equal(known, global_brokerage(self.G, self.groups))
+
+
+class TestOverlap:
+    def setup(self):
+        edges = [(1, 2), (1, 3), (2, 3), (2, 6), (3, 5), (4, 5), (5, 6), (5, 7),
+                 (6, 8), (7, 8)]
+        self.groups = [{1, 2, 3}, {2, 3, 4, 5, 6}, {4, 7, 8}]
+        self.G = nx.Graph()
+        self.G.add_edges_from(edges)
+
+    def test_unnormalized(self):
+        known = {1: 0, 2: 19 / 6, 3: 20 / 3, 4: 0, 5: 53 / 3, 6: 26 / 3,
+                 7: 5 / 3, 8: 7 / 6}
+        assert_dict_almost_equal(known, global_brokerage(self.G, self.groups,
+                                                         normalized=False))
+
+    def test_normalized(self):
+        known = {1: 0, 2: 19 / 144, 3: 5 / 18, 4: 0, 5: 53 / 90, 6: 26 / 90,
+                 7: 5 / 84, 8: 7 / 168}
+        print(known, global_brokerage(self.G, self.groups))
+        assert_dict_almost_equal(known, global_brokerage(self.G, self.groups))

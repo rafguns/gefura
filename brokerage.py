@@ -24,8 +24,7 @@ def global_brokerage(G, groups, weight=None, normalized=True):
     """Determine global brokerage measure of each node
 
     This function handles both weighted and unweighted networks, directed and
-    undirected, and connected and unconnected. It supposes, however, that node
-    groups are disjoint, i.e. that groups cannot overlap.
+    undirected, and connected and unconnected. Node groups may overlap.
 
     Arguments
     ---------
@@ -66,9 +65,13 @@ def global_brokerage(G, groups, weight=None, normalized=True):
 
         # Accumulation
         delta = dict.fromkeys(G, 0)
+        s_groups = group_of[s]
         while S:
             w = S.pop()
-            i = 1 if group_of[s].symmetric_difference(group_of[w]) else 0
+            w_groups = group_of[w]
+            # We count one path i times, if it functions as a path between i
+            # different pairs of groups
+            i = len(s_groups) * len(w_groups) - len(s_groups & w_groups)
             for v in P[w]:
                 sigmas = sigma[v] / sigma[w]
                 delta[v] += sigmas * (i + delta[w])
