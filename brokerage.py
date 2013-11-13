@@ -122,21 +122,30 @@ def _local_brokerage(G, groups, weight=None, normalized=True):
 
         # Accumulation
         delta = dict.fromkeys(G, 0)
+        s_groups = group_of[s]
         while S:
             w = S.pop()
-            different_groups = group_of[s] != group_of[w]
+            w_groups = group_of[w]
+            # We count one path i times, if it functions as a path between i
+            # different pairs of groups
+            i = len(s_groups) * len(w_groups) - len(s_groups & w_groups)
             for v in P[w]:
                 sigmas = sigma[v] / sigma[w]
-                i = 1 if different_groups else 0
                 delta[v] += sigmas * (i + delta[w])
-            if w != s and not different_groups:
+            if w != s and i == 0:
                 BL[w] += delta[w]
 
     # Normalize
     if normalized:
-        # All combinations of 2 groups
         for s in G:
-            own_group_size = len(group_of[s])
+            # This doesn't work, since group_of[s] is an int now.
+            # The more general question is: how do we define QL(a) if a belongs
+            # to two or more groups? Define it vis-a-vis a specific group?
+            # XXX Temp code!!!
+            for group in groups:
+                if s in group:
+                    own_group_size = len(group)
+                    break
             factor = (own_group_size - 1) * (len(G) - own_group_size)
 
             try:
