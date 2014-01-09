@@ -23,8 +23,7 @@ def global_brokerage(G, groups, weight=None, normalized=True):
     """Determine global brokerage measure of each node
 
     This function handles both weighted and unweighted networks, directed and
-    undirected, and connected and unconnected. It supposes, however, that node
-    groups are disjoint, i.e. that groups cannot overlap.
+    undirected, and connected and unconnected.
 
     Arguments
     ---------
@@ -44,6 +43,7 @@ def global_brokerage(G, groups, weight=None, normalized=True):
     Examples
     --------
     >>> import networkx as nx
+    >>> import brokerage
     >>> G = nx.path_graph(5)
     >>> groups = [{0, 2}, {1}, {3, 4}]
     >>> brokerage.global_brokerage(G, groups)
@@ -121,7 +121,6 @@ def _local_brokerage(G, groups, weight=None, normalized=True):
 
     # Normalize
     if normalized:
-        # All combinations of 2 groups
         for s in G:
             own_group_size = len(group_of[s])
             factor = (own_group_size - 1) * (len(G) - own_group_size)
@@ -138,8 +137,7 @@ def local_brokerage(G, groups, weight=None, normalized=True, direction='out'):
     """Determine local brokerage measure of each node
 
     This function handles both weighted and unweighted networks, directed and
-    undirected, and connected and unconnected. It supposes, however, that node
-    groups are disjoint, i.e. that groups cannot overlap.
+    undirected, and connected and unconnected.
 
     Arguments
     ---------
@@ -166,6 +164,7 @@ def local_brokerage(G, groups, weight=None, normalized=True, direction='out'):
     Examples
     --------
     >>> import networkx as nx
+    >>> import brokerage
     >>> G = nx.path_graph(5)
     >>> groups = [{0, 2}, {1}, {3, 4}]
     >>> brokerage.local_brokerage(G, groups)
