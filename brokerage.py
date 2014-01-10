@@ -16,7 +16,7 @@ from networkx.algorithms.centrality.betweenness import \
     _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
 
 
-__all__ = ["global_brokerage", "local_brokerage"]
+__all__ = ["global_brokerage", "local_brokerage", "external_brokerage"]
 
 
 def global_brokerage(G, groups, weight=None, normalized=True):
@@ -112,9 +112,9 @@ def _local_brokerage(G, groups, weight=None, normalized=True):
         while S:
             w = S.pop()
             different_groups = group_of[s] != group_of[w]
+            i = 1 if different_groups else 0
             for v in P[w]:
                 sigmas = sigma[v] / sigma[w]
-                i = 1 if different_groups else 0
                 delta[v] += sigmas * (i + delta[w])
             if w != s and not different_groups:
                 BL[w] += delta[w]
@@ -186,3 +186,79 @@ def local_brokerage(G, groups, weight=None, normalized=True, direction='out'):
         BL_out = _local_brokerage(G, groups, weight, normalized)
         norm = 2 if normalized else 1  # Count both A -> B and B -> A
         return {k: (BL_in[k] + BL_out[k]) / norm for k in BL_in}
+
+
+def external_brokerage(G, groups, weight=None, normalized=True):
+    """Determine external brokerage measure of each node
+
+    This function handles both weighted and unweighted networks, directed and
+    undirected, and connected and unconnected.
+
+    Arguments
+    ---------
+    G : a networkx.Graph
+        the network
+
+    groups : a list or iterable of sets
+        Each set represents a group and contains 1 to N nodes
+
+    weight : None or a string
+        If None, the network is treated as unweighted. If a string, this is
+        the edge data key corresponding to the edge weight
+
+    normalized : True|False
+        Whether or not to normalize the output to [0, 1].
+
+    Examples
+    --------
+    >>> import networkx as nx
+    >>> import brokerage
+    >>> G = nx.path_graph(5)
+    >>> groups = [{0, 2}, {1}, {3, 4}]
+    >>> brokerage.external_brokerage(G, groups)
+    !!!TODO!!!
+
+    """
+    BE = dict.fromkeys(G, 0)
+    # Make mapping node -> group.
+    # This assumes that groups are disjoint.
+    group_of = {n: group for group in groups for n in group}
+
+    for s in G:
+        if weight is None:
+            S, P, sigma = _single_source_shortest_path_basic(G, s)
+        else:
+            S, P, sigma = _single_source_dijkstra_path_basic(G, s, weight)
+
+        # Accumulation
+        delta = dict.fromkeys(G, 0)
+        while S:
+            w = S.pop()
+            different_groups = group_of[s] != group_of[w]
+            i = 1 if different_groups else 0
+            for v in P[w]:
+                sigmas = sigma[v] / sigma[w]
+                delta[v] += sigmas * (i + delta[w])
+            if w != s and different_groups:
+                BE[w] += delta[w]
+
+    # Since all shortest paths are counted twice if undirected, we divide by 2.
+    if not G.is_directed():
+        for s in G:
+            BE[s] /= 2
+
+    # Normalize
+    if normalized:
+        group_combinations = list(combinations(groups, 2))
+        for s in G:
+            factor = sum(len(A) * len(B) for A, B in group_combinations
+                         if s not in A and s not in B)
+            if G.is_directed():
+                # Count both A -> B and B -> A
+                factor *= 2
+            try:
+                BE[s] /= factor
+            except ZeroDivisionError:
+                BE[s] = 0
+
+    return BE
