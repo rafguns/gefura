@@ -215,8 +215,10 @@ def external_brokerage(G, groups, weight=None, normalized=True):
     >>> import brokerage
     >>> G = nx.path_graph(5)
     >>> groups = [{0, 2}, {1}, {3, 4}]
+    >>> brokerage.external_brokerage(G, groups, normalized=False)
+    {0: 0, 1: 2, 2: 2, 3: 0, 4: 0}
     >>> brokerage.external_brokerage(G, groups)
-    !!!TODO!!!
+    {0: 0, 1: 0.5, 2: 1, 3: 0, 4: 0}
 
     """
     BE = dict.fromkeys(G, 0)
@@ -239,6 +241,8 @@ def external_brokerage(G, groups, weight=None, normalized=True):
             for v in P[w]:
                 sigmas = sigma[v] / sigma[w]
                 delta[v] += sigmas * (i + delta[w])
+            # XXX This is incorrect!
+            print s, w, delta[w]
             if w != s and different_groups:
                 BE[w] += delta[w]
 
