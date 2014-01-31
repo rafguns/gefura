@@ -67,30 +67,11 @@ def global_brokerage(G, groups, weight=None, normalized=True):
             w = S.pop()
             i = 1 if group_of[s] != group_of[w] else 0
             for v in P[w]:
-                sigmas = sigma[v] / sigma[w]
-                delta[v] += sigmas * (i + delta[w])
+                delta[v] += sigma[v] / sigma[w] * (i + delta[w])
             if w != s:
                 BG[w] += delta[w]
 
-    # Since all shortest paths are counted twice if undirected, we divide by 2.
-    if not G.is_directed():
-        for s in G:
-            BG[s] /= 2
-
-    # Normalize
-    if normalized:
-        # All combinations of 2 groups
-        group_combinations = list(combinations(groups, 2))
-        for s in G:
-            factor = sum(len(A - {s}) * len(B - {s})
-                         for A, B in group_combinations)
-            if G.is_directed():
-                # Count both A -> B and B -> A
-                factor *= 2
-            try:
-                BG[s] /= factor
-            except ZeroDivisionError:
-                BG[s] = 0
+    BG = rescale_global(BG, G, groups, normalized)
 
     return BG
 
@@ -112,24 +93,13 @@ def _local_brokerage(G, groups, weight=None, normalized=True):
         while S:
             w = S.pop()
             different_groups = group_of[s] != group_of[w]
+            i = 1 if different_groups else 0
             for v in P[w]:
-                sigmas = sigma[v] / sigma[w]
-                i = 1 if different_groups else 0
-                delta[v] += sigmas * (i + delta[w])
+                delta[v] += sigma[v] / sigma[w] * (i + delta[w])
             if w != s and not different_groups:
                 BL[w] += delta[w]
 
-    # Normalize
-    if normalized:
-        for s in G:
-            own_group_size = len(group_of[s])
-            factor = (own_group_size - 1) * (len(G) - own_group_size)
-
-            try:
-                BL[s] /= factor
-            except ZeroDivisionError:
-                BL[s] = 0
-
+    BL = rescale_local(BL, G, group_of, normalized)
     return BL
 
 
@@ -186,3 +156,37 @@ def local_brokerage(G, groups, weight=None, normalized=True, direction='out'):
         BL_out = _local_brokerage(G, groups, weight, normalized)
         norm = 2 if normalized else 1  # Count both A -> B and B -> A
         return {k: (BL_in[k] + BL_out[k]) / norm for k in BL_in}
+
+
+def rescale_global(B, G, groups, normalized):
+    # Since all shortest paths are counted twice if undirected, we divide by 2.
+    # Only do this in the unnormalized case. If normalized, we need to account
+    # for both group A -> B and B -> A.
+    base_factor = 1 if G.is_directed() and not normalized else 2
+
+    for s in G:
+        if normalized:
+            # All combinations of 2 groups
+            group_combinations = list(combinations(groups, 2))
+            factor = sum(len(A - {s}) * len(B - {s})
+                         for A, B in group_combinations) * base_factor
+        else:
+            factor = base_factor
+        try:
+            B[s] /= factor
+        except ZeroDivisionError:
+            B[s] = 0
+
+    return B
+
+
+def rescale_local(B, G, group_of, normalized):
+    if normalized:
+        for s in G:
+            own_group_size = len(group_of[s])
+            factor = (own_group_size - 1) * (len(G) - own_group_size)
+            try:
+                B[s] /= factor
+            except ZeroDivisionError:
+                B[s] = 0
+    return B
