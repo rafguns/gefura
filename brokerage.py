@@ -187,8 +187,6 @@ def external_brokerage(G, groups, weight=None, normalized=True):
     >>> groups = [{0, 2}, {1}, {3, 4}]
     >>> brokerage.external_brokerage(G, groups, normalized=False)
     {0: 0, 1: 2, 2: 2, 3: 0, 4: 0}
-    >>> brokerage.external_brokerage(G, groups)
-    {0: 0, 1: 0.5, 2: 1, 3: 0, 4: 0}
 
     """
     BE = dict.fromkeys(G, 0)
@@ -205,36 +203,21 @@ def external_brokerage(G, groups, weight=None, normalized=True):
         # Accumulation
         delta = dict.fromkeys(G, 0)
         while S:
+            for n in G:
+                G.node[n]['switch'] = False
             w = S.pop()
             different_groups = group_of[s] != group_of[w]
             i = 1 if different_groups else 0
             for v in P[w]:
-                sigmas = sigma[v] / sigma[w]
-                delta[v] += sigmas * (i + delta[w])
+                delta[v] += sigma[v] / sigma[w] * (i + delta[w])
+                if group_of[v] != group_of[w]:
+                    G.node[v]['switch'] = True
             # XXX This is incorrect!
-            print s, w, delta[w]
-            if w != s and different_groups:
+            if w != s and different_groups and G.node[w]['switch']:
+                print s, w, delta[w]
                 BE[w] += delta[w]
 
-    # Since all shortest paths are counted twice if undirected, we divide by 2.
-    if not G.is_directed():
-        for s in G:
-            BE[s] /= 2
-
-    # Normalize
-    if normalized:
-        group_combinations = list(combinations(groups, 2))
-        for s in G:
-            factor = sum(len(A) * len(B) for A, B in group_combinations
-                         if s not in A and s not in B)
-            if G.is_directed():
-                # Count both A -> B and B -> A
-                factor *= 2
-            try:
-                BE[s] /= factor
-            except ZeroDivisionError:
-                BE[s] = 0
-
+    BE = rescale_external(BE, G, groups, normalized)
     return BE
 
 
@@ -269,4 +252,25 @@ def rescale_local(B, G, group_of, normalized):
                 B[s] /= factor
             except ZeroDivisionError:
                 B[s] = 0
+    return B
+
+
+def rescale_external(B, G, groups, normalized):
+    # Since all shortest paths are counted twice if undirected, we divide by 2.
+    # Only do this in the unnormalized case. If normalized, we need to account
+    # for both group A -> B and B -> A.
+    base_factor = 1 if G.is_directed() and not normalized else 2
+
+    group_combinations = list(combinations(groups, 2))
+    for s in G:
+        if normalized:
+            factor = sum(len(A) * len(B) for A, B in group_combinations
+                         if s not in A and s not in B)
+        else:
+            factor = base_factor
+        try:
+            B[s] /= factor
+        except ZeroDivisionError:
+            B[s] = 0
+
     return B
