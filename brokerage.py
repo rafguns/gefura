@@ -65,11 +65,13 @@ def global_brokerage(G, groups, weight=None, normalized=True):
         delta = dict.fromkeys(G, 0)
         while S:
             w = S.pop()
-            i = 1 if group_of[s] != group_of[w] else 0
+            deltaw, sigmaw = delta[w], sigma[w]
+            coeff = (1 + deltaw) / sigmaw if group_of[s] != group_of[w] \
+                else deltaw / sigmaw
             for v in P[w]:
-                delta[v] += sigma[v] / sigma[w] * (i + delta[w])
+                delta[v] += sigma[v] * coeff
             if w != s:
-                BG[w] += delta[w]
+                BG[w] += deltaw
 
     BG = rescale_global(BG, G, groups, normalized)
 
@@ -93,11 +95,13 @@ def _local_brokerage(G, groups, weight=None, normalized=True):
         while S:
             w = S.pop()
             different_groups = group_of[s] != group_of[w]
-            i = 1 if different_groups else 0
+            deltaw, sigmaw = delta[w], sigma[w]
+            coeff = (1 + deltaw) / sigmaw if different_groups \
+                else deltaw / sigmaw
             for v in P[w]:
-                delta[v] += sigma[v] / sigma[w] * (i + delta[w])
+                delta[v] += sigma[v] * coeff
             if w != s and not different_groups:
-                BL[w] += delta[w]
+                BL[w] += deltaw
 
     BL = rescale_local(BL, G, group_of, normalized)
     return BL
