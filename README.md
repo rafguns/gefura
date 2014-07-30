@@ -1,19 +1,19 @@
-brokerage
-=========
+gefura
+======
 
-brokerage is a small Python module that implements brokerage measures, i.e. indicators that characterize to what extent a node forms a 'bridge' between groups in a network. 
+**gefura** is a small Python module that implements gefura measures, i.e. indicators that characterize to what extent a node forms a 'bridge' between groups in a network. Its name derives from Old Greek *γεφυρα*, meaning *bridge*.
 
-These measures are adaptations of [betweenness centrality](http://en.wikipedia.org/wiki/Betweenness_centrality) where only shortest paths between nodes from different groups are taken into account. The brokerage measures are also known as 'Q-measures' (ot to be mistaken with e.g. modularity Q).
+These measures are adaptations of [betweenness centrality](http://en.wikipedia.org/wiki/Betweenness_centrality) where only shortest paths between nodes from different groups are taken into account.
 
-This module implements global and local brokerage. Both directed and undirected, as well as weighted and unweighted networks are supported.
+This module implements global and local gefura. Both directed and undirected, as well as weighted and unweighted networks are supported.
 
 
 Definition
 ----------
 
-Global brokerage is defined as
+Global gefura is defined as
 
-![B_G(a) = \frac{1}{M} \sum_{\substack{g, h \in V\\group(g) \neq group(h)}} \frac{p_{g,h}(a)}{p_{g,h}}](http://latex.codecogs.com/gif.latex?B_G%28a%29%20%3D%20%5Cfrac%7B1%7D%7BM%7D%20%5Csum_%7B%5Csubstack%7Bg%2Ch%20%5Cin%20V%5C%5Cgroup%28g%29%20%5Cneq%20group%28h%29%7D%7D%20%5Cfrac%7Bp_%7Bg%2Ch%7D%28a%29%7D%7Bp_%7Bg%2Ch%7D%7D)
+![\Gamma_G(a) = \frac{1}{M} \sum_{\substack{g, h \in V\\group(g) \neq group(h)}} \frac{p_{g,h}(a)}{p_{g,h}}](http://latex.codecogs.com/gif.latex?B_G%28a%29%20%3D%20%5Cfrac%7B1%7D%7BM%7D%20%5Csum_%7B%5Csubstack%7Bg%2Ch%20%5Cin%20V%5C%5Cgroup%28g%29%20%5Cneq%20group%28h%29%7D%7D%20%5Cfrac%7Bp_%7Bg%2Ch%7D%28a%29%7D%7Bp_%7Bg%2Ch%7D%7D)
 
 where _M_ is
 
@@ -25,9 +25,9 @@ Example
 
 ```python
 >>> import networkx as nx
->>> from brokerage import global_brokerage
+>>> from gefura import global_gefura
 >>> G = nx.path_graph(5)
 >>> groups = [{0, 2}, {1}, {3, 4}]
->>> brokerage.global_brokerage(G, groups)
+>>> global_gefura(G, groups)
 {0: 0.0, 1: 0.5, 2: 0.8, 3: 0.6, 4: 0.0}
 ```

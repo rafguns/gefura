@@ -1,11 +1,12 @@
-"""Brokerage measures for 'bridges' between node groups in a network
+# -*- coding: utf-8 -*-
+"""Gefura measures for 'bridges' between node groups in a network
 
 These measures are adaptations of betweenness centrality where only shortest
-paths between nodes from different groups are taken into account. The brokerage
-measures are also known as 'Q-measures' (not to be mistaken with e.g.
-modularity Q).
+paths between nodes from different groups are taken into account. The gefura
+measures thus gauge the extent to which a node bridges between groups (old
+Greek γεφυρα = bridge).
 
-This module implements global and local brokerage. Both directed and
+This module implements global and local gefura. Both directed and
 undirected, as well as weighted and unweighted networks are supported.
 
 """
@@ -16,11 +17,11 @@ from networkx.algorithms.centrality.betweenness import \
     _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
 
 
-__all__ = ["global_brokerage", "local_brokerage"]
+__all__ = ["global_gefura", "local_gefura"]
 
 
-def global_brokerage(G, groups, weight=None, normalized=True):
-    """Determine global brokerage measure of each node
+def global_gefura(G, groups, weight=None, normalized=True):
+    """Determine global gefura measure of each node
 
     This function handles both weighted and unweighted networks, directed and
     undirected, and connected and unconnected.
@@ -43,14 +44,13 @@ def global_brokerage(G, groups, weight=None, normalized=True):
     Examples
     --------
     >>> import networkx as nx
-    >>> import brokerage
     >>> G = nx.path_graph(5)
     >>> groups = [{0, 2}, {1}, {3, 4}]
-    >>> brokerage.global_brokerage(G, groups)
+    >>> global_gefura(G, groups)
     {0: 0.0, 1: 0.5, 2: 0.8, 3: 0.6, 4: 0.0}
 
     """
-    BG = dict.fromkeys(G, 0)
+    gamma = dict.fromkeys(G, 0)
     # Make mapping node -> group.
     # This assumes that groups are disjoint.
     group_of = {n: group for group in groups for n in group}
@@ -71,15 +71,15 @@ def global_brokerage(G, groups, weight=None, normalized=True):
             for v in P[w]:
                 delta[v] += sigma[v] * coeff
             if w != s:
-                BG[w] += deltaw
+                gamma[w] += deltaw
 
-    BG = rescale_global(BG, G, groups, normalized)
+    gamma = rescale_global(gamma, G, groups, normalized)
 
-    return BG
+    return gamma
 
 
-def _local_brokerage(G, groups, weight=None, normalized=True):
-    BL = dict.fromkeys(G, 0)
+def _local_gefura(G, groups, weight=None, normalized=True):
+    gamma = dict.fromkeys(G, 0)
     # Make mapping node -> group.
     # This assumes that groups are disjoint.
     group_of = {n: group for group in groups for n in group}
@@ -101,14 +101,14 @@ def _local_brokerage(G, groups, weight=None, normalized=True):
             for v in P[w]:
                 delta[v] += sigma[v] * coeff
             if w != s and not different_groups:
-                BL[w] += deltaw
+                gamma[w] += deltaw
 
-    BL = rescale_local(BL, G, group_of, normalized)
-    return BL
+    gamma = rescale_local(gamma, G, group_of, normalized)
+    return gamma
 
 
-def local_brokerage(G, groups, weight=None, normalized=True, direction='out'):
-    """Determine local brokerage measure of each node
+def local_gefura(G, groups, weight=None, normalized=True, direction='out'):
+    """Determine local gefura measure of each node
 
     This function handles both weighted and unweighted networks, directed and
     undirected, and connected and unconnected.
@@ -138,59 +138,58 @@ def local_brokerage(G, groups, weight=None, normalized=True, direction='out'):
     Examples
     --------
     >>> import networkx as nx
-    >>> import brokerage
     >>> G = nx.path_graph(5)
     >>> groups = [{0, 2}, {1}, {3, 4}]
-    >>> brokerage.local_brokerage(G, groups)
+    >>> local_gefura(G, groups)
     {0: 0.0, 1: 0, 2: 0.6666666666666666, 3: 1.0, 4: 0.0}
 
     """
     if not G.is_directed() or direction == 'out':
-        return _local_brokerage(G, groups, weight, normalized)
+        return _local_gefura(G, groups, weight, normalized)
 
     if direction not in ('in', 'all'):
         raise ValueError("direction should be either 'in', 'out' or 'all'.")
 
     H = G.reverse()
-    BL_in = _local_brokerage(H, groups, weight, normalized)
+    gamma_in = _local_gefura(H, groups, weight, normalized)
     if direction == 'in':
-        return BL_in
+        return gamma_in
     else:
         # 'all' is the sum of 'in' and 'out'
-        BL_out = _local_brokerage(G, groups, weight, normalized)
-        norm = 2 if normalized else 1  # Count both A -> B and B -> A
-        return {k: (BL_in[k] + BL_out[k]) / norm for k in BL_in}
+        gamma_out = _local_gefura(G, groups, weight, normalized)
+        norm = 2 if normalized else 1  # Count both A -> gamma and gamma -> A
+        return {k: (gamma_in[k] + gamma_out[k]) / norm for k in gamma_in}
 
 
-def rescale_global(B, G, groups, normalized):
+def rescale_global(gamma, G, groups, normalized):
     # Since all shortest paths are counted twice if undirected, we divide by 2.
     # Only do this in the unnormalized case. If normalized, we need to account
-    # for both group A -> B and B -> A.
+    # for both group A -> gamma and gamma -> A.
     base_factor = 1 if G.is_directed() and not normalized else 2
 
     for s in G:
         if normalized:
             # All combinations of 2 groups
             group_combinations = list(combinations(groups, 2))
-            factor = sum(len(A - {s}) * len(B - {s})
-                         for A, B in group_combinations) * base_factor
+            factor = sum(len(A - {s}) * len(gamma - {s})
+                         for A, gamma in group_combinations) * base_factor
         else:
             factor = base_factor
         try:
-            B[s] /= factor
+            gamma[s] /= factor
         except ZeroDivisionError:
-            B[s] = 0
+            gamma[s] = 0
 
-    return B
+    return gamma
 
 
-def rescale_local(B, G, group_of, normalized):
+def rescale_local(gamma, G, group_of, normalized):
     if normalized:
         for s in G:
             own_group_size = len(group_of[s])
             factor = (own_group_size - 1) * (len(G) - own_group_size)
             try:
-                B[s] /= factor
+                gamma[s] /= factor
             except ZeroDivisionError:
-                B[s] = 0
-    return B
+                gamma[s] = 0
+    return gamma
