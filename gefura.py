@@ -164,15 +164,15 @@ def local_gefura(G, groups, weight=None, normalized=True, direction='out'):
 def rescale_global(gamma, G, groups, normalized):
     # Since all shortest paths are counted twice if undirected, we divide by 2.
     # Only do this in the unnormalized case. If normalized, we need to account
-    # for both group A -> gamma and gamma -> A.
+    # for both group A -> B and B -> A.
     base_factor = 1 if G.is_directed() and not normalized else 2
 
     for s in G:
         if normalized:
             # All combinations of 2 groups
             group_combinations = list(combinations(groups, 2))
-            factor = sum(len(A - {s}) * len(gamma - {s})
-                         for A, gamma in group_combinations) * base_factor
+            factor = sum(len(A - {s}) * len(B - {s})
+                         for A, B in group_combinations) * base_factor
         else:
             factor = base_factor
         try:
