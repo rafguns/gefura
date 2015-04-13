@@ -1,11 +1,16 @@
 gefura
 ======
 
+[![Build Status](https://travis-ci.org/rafguns/gefura.svg?branch=master)](https://travis-ci.org/rafguns/gefura)
+[![Coverage Status](https://coveralls.io/repos/rafguns/gefura/badge.svg?branch=master)](https://coveralls.io/r/rafguns/gefura?branch=master)
+
 **gefura** is a small Python module that implements gefura measures, i.e. indicators that characterize to what extent a node forms a 'bridge' between groups in a network. Its name derives from Old Greek *γεφυρα*, meaning *bridge*.
 
-These measures are adaptations of [betweenness centrality](http://en.wikipedia.org/wiki/Betweenness_centrality) where only shortest paths between nodes from different groups are taken into account. Previously they were known as Q-measures. Because Q is already used for many other concepts (e.g. modularity in networks), we have chosen the new name gefura.
+These measures are adaptations of [betweenness centrality](http://en.wikipedia.org/wiki/Betweenness_centrality) where only shortest paths between nodes from different groups are taken into account. Previously they were known as Q-measures. Because *Q* is already used for many other concepts (e.g. modularity in networks), we have chosen the new name gefura.
 
 This module implements global and local gefura. Both directed and undirected, as well as weighted and unweighted networks are supported.
+
+**gefura** only depends on [NetworkX](http://networkx.github.io/).
 
 
 Definition
