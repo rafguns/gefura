@@ -61,6 +61,18 @@ def test_2_groups_line_graph():
     assert_dict_almost_equal(local_gefura(G, groups), known_vals)
 
 
+def test_singleton_groups():
+    G = nx.Graph()
+    G.add_edge(1, 2)
+    groups = [{1}, {2}]
+    expected = {1: 0., 2: 0.}
+
+    assert_dict_almost_equal(global_gefura(G, groups, normalized=False),
+                             expected)
+    # Normalization should not throw ZeroDivisionError
+    assert_dict_almost_equal(global_gefura(G, groups), expected)
+
+
 class TestDiGraph:
     def setup(self):
         edges = [('a1', 'a2'), ('a1', 'b2'), ('a2', 'a1'), ('a2', 'b1'),
@@ -113,19 +125,26 @@ class TestWeightedGraph:
         self.G.add_weighted_edges_from(edges)
         self.groups = [{'a1', 'a2'}, {'b1', 'b2', 'b3'}]
 
-    def test_with_weights(self):
+    def test_global(self):
         known_vals = {'a1': 0.5, 'a2': 1 / 6,
                       'b1': 0.5, 'b2': 0.125, 'b3': 0.125}
 
-        B = global_gefura(self.G, self.groups, weight='weight')
-        assert_dict_almost_equal(B, known_vals)
+        gamma = global_gefura(self.G, self.groups, weight='weight')
+        assert_dict_almost_equal(gamma, known_vals)
 
-    def test_without_weights(self):
+    def test_global_ignore_weights(self):
         known_vals = {'a1': 1 / 3, 'a2': 1 / 3,
                       'b1': 0.25, 'b2': 0.25, 'b3': 0}
 
-        B = global_gefura(self.G, self.groups)
-        assert_dict_almost_equal(B, known_vals)
+        gamma = global_gefura(self.G, self.groups)
+        assert_dict_almost_equal(gamma, known_vals)
+
+    def test_local(self):
+        known_vals = dict(a1=1.5, a2=0.5, b1=2, b2=0.5, b3=0.5)
+
+        gamma = local_gefura(self.G, self.groups, weight='weight',
+                             normalized=False)
+        assert_dict_almost_equal(gamma, known_vals)
 
 
 class TestLocal:
