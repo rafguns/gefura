@@ -12,12 +12,50 @@ undirected, as well as weighted and unweighted networks are supported.
 """
 from __future__ import division
 
-from itertools import combinations
+from collections import defaultdict
+from itertools import combinations, product
 from networkx.algorithms.centrality.betweenness import \
     _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
 
 
 __all__ = ["global_gefura", "local_gefura"]
+
+
+def _groups_per_node(groups):
+    """Make mapping from a node to its group(s)"""
+    d = defaultdict(set)
+    for i, group in enumerate(groups):
+        for n in group:
+            d[n].add(i)
+    return d
+
+
+def decouple_overlap(G, groups):
+    H = G.__class__()
+    mapping = _groups_per_node(groups)
+    H_groups = defaultdict(set)  # groups of the new nodes
+
+    for n, group_idxs in mapping.items():
+        extra_nodes = [(n, i) for i in group_idxs]
+        H.add_nodes_from(extra_nodes)
+        # XXX If weighted: these edges should have such a weight that they
+        # are always the shortest path!
+        H.add_edges_from(combinations(extra_nodes, 2))
+        H_groups[i].update(extra_nodes)
+
+    for u, v, d in G.edges_iter(data=True):
+        us = ((u, i) for i in mapping[u])
+        vs = ((v, i) for i in mapping[v])
+        H.add_edges_from(product(us, vs), d)
+
+    return H, H_groups.values()
+
+
+def aggregate_overlap(gamma):
+    gamma2 = defaultdict(int)
+    for (n, _), v in gamma.items():
+        gamma2[n] += v
+    return gamma2
 
 
 def global_gefura(G, groups, weight=None, normalized=True):
