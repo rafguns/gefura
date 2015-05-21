@@ -18,7 +18,8 @@ from networkx.algorithms.centrality.betweenness import \
     _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
 
 
-__all__ = ["global_gefura", "local_gefura"]
+__all__ = ["global_gefura", "local_gefura",
+           "decouple_overlap", "aggregate_overlap"]
 
 
 def _groups_per_node(groups):
@@ -41,7 +42,8 @@ def decouple_overlap(G, groups):
         # XXX If weighted: these edges should have such a weight that they
         # are always the shortest path!
         H.add_edges_from(combinations(extra_nodes, 2))
-        H_groups[i].update(extra_nodes)
+        for n, i in extra_nodes:
+            H_groups[i].add((n, i))
 
     for u, v, d in G.edges_iter(data=True):
         us = ((u, i) for i in mapping[u])

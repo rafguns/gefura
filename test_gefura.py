@@ -2,7 +2,8 @@ from __future__ import division
 
 import networkx as nx
 
-from gefura import global_gefura, local_gefura
+from gefura import (global_gefura, local_gefura,
+                    decouple_overlap, aggregate_overlap)
 from nose.tools import assert_almost_equal, raises
 
 
@@ -201,3 +202,18 @@ def test_local_directed():
 
     for d, vals in (('out', known_out), ('in', known_in), ('all', known_all)):
         assert_dict_almost_equal(local_gefura(G, groups, direction=d), vals)
+
+
+class TestOverlappingLineGraph:
+    def setup(self):
+        edges = [(1, 2), (2, 3), (3, 4)]
+        self.groups = [{1, 2, 3}, {2, 3, 4}, {4}]
+        self.G = nx.Graph()
+        self.G.add_edges_from(edges)
+
+    def test_unnormalized(self):
+        known = {1: 0, 2: 3, 3: 5, 4: 0}
+        G, groups = decouple_overlap(self.G, self.groups)
+        gamma = global_gefura(G, groups, normalized=False)
+        gamma = aggregate_overlap(gamma)
+        assert_dict_almost_equal(known, gamma)
