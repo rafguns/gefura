@@ -12,6 +12,7 @@ undirected, as well as weighted and unweighted networks are supported.
 """
 from __future__ import division
 
+from contextlib import contextmanager
 from itertools import combinations
 from networkx.algorithms.centrality.betweenness import \
     _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
@@ -150,15 +151,27 @@ def local_gefura(G, groups, weight=None, normalized=True, direction='out'):
     if direction not in ('in', 'all'):
         raise ValueError("direction should be either 'in', 'out' or 'all'.")
 
-    H = G.reverse()
-    gamma_in = _local_gefura(H, groups, weight, normalized)
+    with reversed(G):
+        gamma_in = _local_gefura(G, groups, weight, normalized)
     if direction == 'in':
         return gamma_in
     else:
         # 'all' is the sum of 'in' and 'out'
         gamma_out = _local_gefura(G, groups, weight, normalized)
         norm = 2 if normalized else 1  # Count both A -> gamma and gamma -> A
+        print(gamma_in, gamma_out)
         return {k: (gamma_in[k] + gamma_out[k]) / norm for k in gamma_in}
+
+
+@contextmanager
+def reversed(G):
+    """Temporarily reverse a graph
+
+    This will be in the next version of NetworkX
+    """
+    G.reverse(copy=False)
+    yield
+    G.reverse(copy=False)
 
 
 def rescale_global(gamma, G, groups, normalized):
