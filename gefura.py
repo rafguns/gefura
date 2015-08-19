@@ -21,6 +21,69 @@ from networkx.algorithms.centrality.betweenness import \
 __all__ = ["global_gefura", "local_gefura"]
 
 
+def global_gefura_structural(G, groups, weight=None, normalized=True):
+    """Determine global gefura measure of each node
+
+    This function handles both weighted and unweighted networks, directed and
+    undirected, and connected and unconnected.
+
+    Arguments
+    ---------
+    G : a networkx.Graph
+        the network
+
+    groups : a list or iterable of sets
+        Each set represents a group and contains 1 to N nodes
+
+    weight : None or a string
+        If None, the network is treated as unweighted. If a string, this is
+        the edge data key corresponding to the edge weight
+
+    normalized : True|False
+        Whether or not to normalize the output to [0, 1].
+
+    Examples
+    --------
+    >>> import networkx as nx
+    >>> G = nx.path_graph(5)
+    >>> groups = [{0, 2}, {1}, {3, 4}]
+    >>> global_gefura(G, groups)
+    {0: 0.0, 1: 0.5, 2: 0.8, 3: 0.6, 4: 0.0}
+
+    """
+    gamma = dict.fromkeys(G, 0)
+    # Make mapping node -> group.
+    # This assumes that groups are disjoint.
+    group_of = {n: group for group in groups for n in group}
+
+    for s in G:
+        if weight is None:
+            S, P, sigma = _single_source_shortest_path_basic(G, s)
+        else:
+            S, P, sigma = _single_source_dijkstra_path_basic(G, s, weight)
+
+        # Accumulation
+        delta = dict.fromkeys(G, 0)
+        groupsize_s = len(group_of[s])
+        while S:
+            w = S.pop()
+            deltaw, sigmaw = delta[w], sigma[w]
+            if group_of[s] == group_of[w]:
+                coeff = deltaw / sigmaw
+                j = groupsize_s - 1
+            else:
+                coeff = (1 / len(group_of[w]) + deltaw) / sigmaw
+                j = groupsize_s
+            for v in P[w]:
+                delta[v] += sigma[v] * coeff
+            if w != s:
+                gamma[w] += (1 / j) * deltaw
+
+    gamma = rescale_global(gamma, G, groups, normalized)
+
+    return gamma
+
+
 def global_gefura(G, groups, weight=None, normalized=True):
     """Determine global gefura measure of each node
 
