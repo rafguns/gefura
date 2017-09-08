@@ -45,10 +45,10 @@ def decouple_overlap(G, groups):
         for n, i in extra_nodes:
             H_groups[i].add((n, i))
 
-    for u, v, d in G.edges_iter(data=True):
+    for u, v, d in G.edges(data=True):
         us = ((u, i) for i in mapping[u])
         vs = ((v, i) for i in mapping[v])
-        H.add_edges_from(product(us, vs), d)
+        H.add_edges_from(product(us, vs), **d)
 
     return H, H_groups.values()
 
