@@ -219,6 +219,7 @@ class TestOverlappingLineGraph:
         assert_dict_almost_equal(known, gamma)
 
     def test_unnormalized_local(self):
+        # Each key is a tuple (node, group)
         known = {(1, 0): 0, (2, 0): 1.5, (2, 1): 1, (3, 0): 2, (3, 1): 1.5,
                  (4, 1): 0, (4, 2): 0}
         G, groups = decouple_overlap(self.G, self.groups)
