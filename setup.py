@@ -8,7 +8,7 @@ setup(
     url='http://github.com/rafguns/gefura/',
     license='New BSD License',
     author='Raf Guns',
-    tests_require=['nose'],
+    tests_require=['pytest', 'pytest-cov'],
     install_requires=[
         'networkx>=2.5',
     ],

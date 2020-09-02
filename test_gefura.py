@@ -1,14 +1,7 @@
-from __future__ import division
-
 import networkx as nx
+import pytest
 
 from gefura import global_gefura, local_gefura
-from nose.tools import assert_almost_equal, raises
-
-
-def assert_dict_almost_equal(d1, d2):
-    for k in d1:
-        assert_almost_equal(d1[k], d2[k])
 
 
 def test_3_groups():
@@ -21,7 +14,7 @@ def test_3_groups():
     G.add_edges_from(edges)
     groups = [{'a1', 'a2', 'a3'}, {'b1', 'b2'}, {'c1', 'c2', 'c3'}]
 
-    assert_dict_almost_equal(global_gefura(G, groups), known_vals)
+    assert global_gefura(G, groups) == pytest.approx(known_vals)
 
 
 def test_line_graph():
@@ -33,7 +26,7 @@ def test_line_graph():
     G.add_edges_from(edges)
     groups = [{'a1', 'a2'}, {'b1', 'b2', 'b3'}, {'c1', 'c2'}]
 
-    assert_dict_almost_equal(global_gefura(G, groups), known_vals)
+    assert global_gefura(G, groups) == pytest.approx(known_vals)
 
 
 def test_2_groups_unnormalized():
@@ -44,10 +37,8 @@ def test_2_groups_unnormalized():
     G = nx.Graph()
     G.add_edges_from(edges)
 
-    assert_dict_almost_equal(global_gefura(G, groups, normalized=False),
-                             known_vals)
-    assert_dict_almost_equal(local_gefura(G, groups, normalized=False),
-                             known_vals)
+    assert global_gefura(G, groups, normalized=False) == pytest.approx(known_vals)
+    assert local_gefura(G, groups, normalized=False) == pytest.approx(known_vals)
 
 
 def test_2_groups_line_graph():
@@ -57,8 +48,8 @@ def test_2_groups_line_graph():
     G = nx.Graph()
     G.add_edges_from(edges)
 
-    assert_dict_almost_equal(global_gefura(G, groups), known_vals)
-    assert_dict_almost_equal(local_gefura(G, groups), known_vals)
+    assert global_gefura(G, groups) == pytest.approx(known_vals)
+    assert local_gefura(G, groups) == pytest.approx(known_vals)
 
 
 def test_singleton_groups():
@@ -67,10 +58,9 @@ def test_singleton_groups():
     groups = [{1}, {2}]
     expected = {1: 0., 2: 0.}
 
-    assert_dict_almost_equal(global_gefura(G, groups, normalized=False),
-                             expected)
+    assert global_gefura(G, groups, normalized=False) == pytest.approx(expected)
     # Normalization should not throw ZeroDivisionError
-    assert_dict_almost_equal(global_gefura(G, groups), expected)
+    assert global_gefura(G, groups) == pytest.approx(expected)
 
 
 class TestDiGraph:
@@ -87,9 +77,8 @@ class TestDiGraph:
                                  'b2': 0}
 
         gamma = global_gefura(self.G, self.groups, normalized=False)
-        assert_dict_almost_equal(gamma, known_vals_unnormalized)
-        assert_dict_almost_equal(global_gefura(self.G, self.groups),
-                                 known_vals_normalized)
+        assert gamma == pytest.approx(known_vals_unnormalized)
+        assert global_gefura(self.G, self.groups) == pytest.approx(known_vals_normalized)
 
     def test_local(self):
         known_vals_unnormalized_out = {'a1': 0.5, 'a2': 1, 'b1': 0, 'b2': 0}
@@ -101,20 +90,20 @@ class TestDiGraph:
                                      'b2': 0}
 
         gamma_out = local_gefura(self.G, self.groups, normalized=False)
-        assert_dict_almost_equal(gamma_out, known_vals_unnormalized_out)
+        assert gamma_out == pytest.approx(known_vals_unnormalized_out)
         gamma_in = local_gefura(self.G, self.groups, normalized=False,
                                 direction='in')
-        assert_dict_almost_equal(gamma_in, known_vals_unnormalized_in)
+        assert gamma_in == pytest.approx(known_vals_unnormalized_in)
         gamma_all = local_gefura(self.G, self.groups, normalized=False,
                                  direction='all')
-        assert_dict_almost_equal(gamma_all, known_vals_unnormalized_all)
+        assert gamma_all == pytest.approx(known_vals_unnormalized_all)
 
         gamma_out = local_gefura(self.G, self.groups)
-        assert_dict_almost_equal(gamma_out, known_vals_normalized_out)
+        assert gamma_out == pytest.approx(known_vals_normalized_out)
         gamma_in = local_gefura(self.G, self.groups, direction='in')
-        assert_dict_almost_equal(gamma_in, known_vals_normalized_in)
+        assert gamma_in == pytest.approx(known_vals_normalized_in)
         gamma_all = local_gefura(self.G, self.groups, direction='all')
-        assert_dict_almost_equal(gamma_all, known_vals_normalized_all)
+        assert gamma_all == pytest.approx(known_vals_normalized_all)
 
 
 class TestWeightedGraph:
@@ -130,21 +119,21 @@ class TestWeightedGraph:
                       'b1': 0.5, 'b2': 0.125, 'b3': 0.125}
 
         gamma = global_gefura(self.G, self.groups, weight='weight')
-        assert_dict_almost_equal(gamma, known_vals)
+        assert gamma == pytest.approx(known_vals)
 
     def test_global_ignore_weights(self):
         known_vals = {'a1': 1 / 3, 'a2': 1 / 3,
                       'b1': 0.25, 'b2': 0.25, 'b3': 0}
 
         gamma = global_gefura(self.G, self.groups)
-        assert_dict_almost_equal(gamma, known_vals)
+        assert gamma == pytest.approx(known_vals)
 
     def test_local(self):
         known_vals = dict(a1=1.5, a2=0.5, b1=2, b2=0.5, b3=0.5)
 
         gamma = local_gefura(self.G, self.groups, weight='weight',
                              normalized=False)
-        assert_dict_almost_equal(gamma, known_vals)
+        assert gamma == pytest.approx(known_vals)
 
 
 class TestLocal:
@@ -159,13 +148,13 @@ class TestLocal:
         known_gamma = {'a1': 0.125, 'a2': 0, 'b1': 0.375, 'b2': 0.375,
                        'c1': 0.125, 'c2': 0}
         gamma = local_gefura(self.G, self.groups)
-        assert_dict_almost_equal(gamma, known_gamma)
+        assert gamma == pytest.approx(known_gamma)
 
     def test_unnormalized(self):
         known_gamma = {'a1': 0.5, 'a2': 0, 'b1': 1.5, 'b2': 1.5,
                        'c1': 0.5, 'c2': 0}
         gamma = local_gefura(self.G, self.groups, normalized=False)
-        assert_dict_almost_equal(gamma, known_gamma)
+        assert gamma == pytest.approx(known_gamma)
 
 
 def test_local_line_graph():
@@ -177,13 +166,12 @@ def test_local_line_graph():
     G = nx.Graph()
     G.add_edges_from(edges)
 
-    assert_dict_almost_equal(local_gefura(G, groups, normalized=False),
-                             known_vals)
+    assert local_gefura(G, groups, normalized=False) == pytest.approx(known_vals)
 
 
-@raises(ValueError)
 def test_local_directed_wrong_direction_value():
-    local_gefura(nx.DiGraph(), [], direction="foobar")
+    with pytest.raises(ValueError):
+        local_gefura(nx.DiGraph(), [], direction="foobar")
 
 
 def test_local_directed():
@@ -200,4 +188,4 @@ def test_local_directed():
     G.add_edges_from(edges)
 
     for d, vals in (('out', known_out), ('in', known_in), ('all', known_all)):
-        assert_dict_almost_equal(local_gefura(G, groups, direction=d), vals)
+        assert local_gefura(G, groups, direction=d) == pytest.approx(vals)

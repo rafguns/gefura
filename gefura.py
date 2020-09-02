@@ -10,9 +10,6 @@ This module implements global and local gefura. Both directed and
 undirected, as well as weighted and unweighted networks are supported.
 
 """
-from __future__ import division
-
-from contextlib import contextmanager
 from itertools import combinations
 from networkx.algorithms.centrality.betweenness import \
     _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
