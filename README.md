@@ -1,8 +1,8 @@
 gefura
 ======
 
-[![Build Status](https://travis-ci.org/rafguns/gefura.svg?branch=master)](https://travis-ci.org/rafguns/gefura)
-[![Coverage Status](https://coveralls.io/repos/rafguns/gefura/badge.svg?branch=master)](https://coveralls.io/r/rafguns/gefura?branch=master)
+[![Test with tox](https://github.com/rafguns/gefura/actions/workflows/tox.yml/badge.svg)](https://github.com/rafguns/gefura/actions/workflows/tox.yml)
+[![codecov](https://codecov.io/gh/rafguns/gefura/branch/master/graph/badge.svg?token=7OVWA23949)](https://codecov.io/gh/rafguns/gefura)
 
 **gefura** is a small Python module that implements gefura measures, i.e. indicators that characterize to what extent a node forms a 'bridge' between groups in a network. Its name derives from Old Greek *γεφυρα*, meaning *bridge*.
 
