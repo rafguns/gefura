@@ -57,9 +57,9 @@ def global_gefura(G, groups, weight=None, normalized=True):
 
     for s in G:
         if weight is None:
-            S, P, sigma = _single_source_shortest_path_basic(G, s)
+            S, P, sigma, _ = _single_source_shortest_path_basic(G, s)
         else:
-            S, P, sigma = _single_source_dijkstra_path_basic(G, s, weight)
+            S, P, sigma, _ = _single_source_dijkstra_path_basic(G, s, weight)
 
         # Accumulation
         delta = dict.fromkeys(G, 0)
@@ -87,9 +87,9 @@ def _local_gefura(G, groups, weight=None, normalized=True):
 
     for s in G:
         if weight is None:
-            S, P, sigma = _single_source_shortest_path_basic(G, s)
+            S, P, sigma, _ = _single_source_shortest_path_basic(G, s)
         else:
-            S, P, sigma = _single_source_dijkstra_path_basic(G, s, weight)
+            S, P, sigma, _ = _single_source_dijkstra_path_basic(G, s, weight)
 
         # Accumulation
         delta = dict.fromkeys(G, 0)
