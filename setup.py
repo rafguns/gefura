@@ -10,7 +10,7 @@ setup(
     author='Raf Guns',
     tests_require=['pytest', 'pytest-cov'],
     install_requires=[
-        'networkx>=2.5',
+        'networkx>=2.6',
     ],
     author_email='raf.guns@uantwerpen.be',
     description='Discover \'bridges\' between node groups in a network',
