@@ -297,6 +297,5 @@ def local_gefura(
     kwargs = dict(weight=weight, normalized=normalized, direction=direction)
     if groups_overlap(G, groups):
         decoupled_G, decoupled_groups = decouple_overlap(G, groups)
-        gamma = local_gefura_no_overlap(decoupled_G, decoupled_groups, **kwargs)
-        return aggregate_overlap(gamma)
+        return local_gefura_no_overlap(decoupled_G, decoupled_groups, **kwargs)
     return local_gefura_no_overlap(G, groups, **kwargs)
