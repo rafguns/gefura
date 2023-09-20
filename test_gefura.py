@@ -3,8 +3,7 @@ import itertools
 import networkx as nx
 import pytest
 
-from gefura import (global_gefura, local_gefura,
-                    decouple_overlap, aggregate_overlap)
+from gefura import global_gefura, local_gefura, decouple_overlap, aggregate_overlap
 
 
 # Format: (list of edges, node to gefura value dict, kwargs, ID)
@@ -272,12 +271,27 @@ class TestOverlappingLineGraph:
         G, groups = decouple_overlap(self.G, self.groups)
         gamma = global_gefura(G, groups, normalized=False)
         gamma = aggregate_overlap(gamma)
-        assert known ==pytest.approx(gamma)
+        assert known == pytest.approx(gamma)
 
     def test_unnormalized_local(self):
         # Each key is a tuple (node, group)
-        known = {(1, 0): 0, (2, 0): 1.5, (2, 1): 1, (3, 0): 2, (3, 1): 1.5,
-                 (4, 1): 0, (4, 2): 0}
+        known = {
+            (1, 0): 0,
+            (2, 0): 1.5,
+            (2, 1): 1,
+            (3, 0): 2,
+            (3, 1): 1.5,
+            (4, 1): 0,
+            (4, 2): 0,
+        }
         G, groups = decouple_overlap(self.G, self.groups)
         gamma = local_gefura(G, groups, normalized=False)
-        assert known ==pytest.approx(gamma)
+        assert known == pytest.approx(gamma)
+
+
+def test_overlap_simple():
+    G = nx.Graph()
+    G.add_edges_from([(1, 2), (2, 3)])
+    groups = [{1, 2}, {2, 3}]
+    known = {1: 0, 2: 1, 3: 0}
+    assert known == pytest.approx(global_gefura(G, groups))
