@@ -258,3 +258,43 @@ def rescale_local(gamma, G, group_of, normalized):
             except ZeroDivisionError:
                 gamma[s] = 0
     return gamma
+
+
+def groups_overlap(G: nx.Graph, groups: Iterable[set[Node]]):
+    all_group_nodes = set.union(*groups)
+    if set(G) != all_group_nodes:
+        msg = "Node set of graph different from nodes in groups"
+        raise ValueError(msg)
+    
+    return len(all_group_nodes) < sum(len(group) for group in groups)
+
+
+def outer_global_gefura(
+    G: nx.Graph,
+    groups: Iterable[set[Node]],
+    /,
+    weight: Optional[str] = None,
+    normalized: bool = True,
+):
+    kwargs = dict(weight=weight, normalized=normalized)
+    if groups_overlap(G, groups):
+        decoupled_G, decoupled_groups = decouple_overlap(G, groups)
+        gamma = global_gefura(decoupled_G, decoupled_groups, **kwargs)
+        return aggregate_overlap(gamma)
+    return global_gefura(G, groups, weight=weight, **kwargs)
+
+
+def outer_local_gefura(
+    G: nx.Graph,
+    groups: Iterable[set[Node]],
+    /,
+    weight: Optional[str] = None,
+    normalized: bool = True,
+    direction: Literal["in", "out", "all"] = "out",
+):
+    kwargs = dict(weight=weight, normalized=normalized, direction=direction)
+    if groups_overlap(G, groups):
+        decoupled_G, decoupled_groups = decouple_overlap(G, groups)
+        gamma = local_gefura(decoupled_G, decoupled_groups, **kwargs)
+        return aggregate_overlap(gamma)
+    return local_gefura(G, groups, **kwargs)
