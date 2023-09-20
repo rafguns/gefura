@@ -10,12 +10,12 @@ This module implements global and local gefura. Both directed and
 undirected, as well as weighted and unweighted networks are supported.
 
 """
-from __future__ import division
-
 from collections import defaultdict
 from itertools import combinations, product
-from networkx.algorithms.centrality.betweenness import \
-    _single_source_shortest_path_basic, _single_source_dijkstra_path_basic
+from networkx.algorithms.centrality.betweenness import (
+    _single_source_shortest_path_basic,
+    _single_source_dijkstra_path_basic,
+)
 
 
 __all__ = ["global_gefura", "local_gefura",
@@ -97,17 +97,18 @@ def global_gefura(G, groups, weight=None, normalized=True):
 
     for s in G:
         if weight is None:
-            S, P, sigma = _single_source_shortest_path_basic(G, s)
+            S, P, sigma, _ = _single_source_shortest_path_basic(G, s)
         else:
-            S, P, sigma = _single_source_dijkstra_path_basic(G, s, weight)
+            S, P, sigma, _ = _single_source_dijkstra_path_basic(G, s, weight)
 
         # Accumulation
         delta = dict.fromkeys(G, 0)
         while S:
             w = S.pop()
             deltaw, sigmaw = delta[w], sigma[w]
-            coeff = (1 + deltaw) / sigmaw if group_of[s] != group_of[w] \
-                else deltaw / sigmaw
+            coeff = (
+                (1 + deltaw) / sigmaw if group_of[s] != group_of[w] else deltaw / sigmaw
+            )
             for v in P[w]:
                 delta[v] += sigma[v] * coeff
             if w != s:
@@ -126,9 +127,9 @@ def _local_gefura(G, groups, weight=None, normalized=True):
 
     for s in G:
         if weight is None:
-            S, P, sigma = _single_source_shortest_path_basic(G, s)
+            S, P, sigma, _ = _single_source_shortest_path_basic(G, s)
         else:
-            S, P, sigma = _single_source_dijkstra_path_basic(G, s, weight)
+            S, P, sigma, _ = _single_source_dijkstra_path_basic(G, s, weight)
 
         # Accumulation
         delta = dict.fromkeys(G, 0)
@@ -136,8 +137,7 @@ def _local_gefura(G, groups, weight=None, normalized=True):
             w = S.pop()
             different_groups = group_of[s] != group_of[w]
             deltaw, sigmaw = delta[w], sigma[w]
-            coeff = (1 + deltaw) / sigmaw if different_groups \
-                else deltaw / sigmaw
+            coeff = (1 + deltaw) / sigmaw if different_groups else deltaw / sigmaw
             for v in P[w]:
                 delta[v] += sigma[v] * coeff
             if w != s and not different_groups:
@@ -147,7 +147,7 @@ def _local_gefura(G, groups, weight=None, normalized=True):
     return gamma
 
 
-def local_gefura(G, groups, weight=None, normalized=True, direction='out'):
+def local_gefura(G, groups, weight=None, normalized=True, direction="out"):
     """Determine local gefura measure of each node
 
     This function handles both weighted and unweighted networks, directed and
@@ -184,20 +184,20 @@ def local_gefura(G, groups, weight=None, normalized=True, direction='out'):
     {0: 0.0, 1: 0, 2: 0.6666666666666666, 3: 1.0, 4: 0.0}
 
     """
-    if not G.is_directed() or direction == 'out':
+    if not G.is_directed() or direction == "out":
         return _local_gefura(G, groups, weight, normalized)
 
-    if direction not in ('in', 'all'):
+    if direction not in ("in", "all"):
         raise ValueError("direction should be either 'in', 'out' or 'all'.")
 
-    H = G.reverse()
-    gamma_in = _local_gefura(H, groups, weight, normalized)
-    if direction == 'in':
+    gamma_in = _local_gefura(G.reverse(copy=False), groups, weight, normalized)
+    if direction == "in":
         return gamma_in
     else:
         # 'all' is the sum of 'in' and 'out'
         gamma_out = _local_gefura(G, groups, weight, normalized)
         norm = 2 if normalized else 1  # Count both A -> gamma and gamma -> A
+        print(gamma_in, gamma_out)
         return {k: (gamma_in[k] + gamma_out[k]) / norm for k in gamma_in}
 
 
@@ -211,8 +211,10 @@ def rescale_global(gamma, G, groups, normalized):
         if normalized:
             # All combinations of 2 groups
             group_combinations = list(combinations(groups, 2))
-            factor = sum(len(A - {s}) * len(B - {s})
-                         for A, B in group_combinations) * base_factor
+            factor = (
+                sum(len(A - {s}) * len(B - {s}) for A, B in group_combinations)
+                * base_factor
+            )
         else:
             factor = base_factor
         try:

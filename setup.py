@@ -1,6 +1,6 @@
 from setuptools import setup
 
-long_description = open('README.md').read()
+long_description = open('README.md', encoding='utf-8').read()
 
 setup(
     name='gefura',
@@ -8,9 +8,9 @@ setup(
     url='http://github.com/rafguns/gefura/',
     license='New BSD License',
     author='Raf Guns',
-    tests_require=['nose'],
+    tests_require=['pytest', 'pytest-cov'],
     install_requires=[
-        'networkx>=1.8',
+        'networkx>=2.8',
     ],
     author_email='raf.guns@uantwerpen.be',
     description='Discover \'bridges\' between node groups in a network',
@@ -21,8 +21,9 @@ setup(
         'Intended Audience :: Science/Research',
         'Intended Audience :: Developers',
         'License :: OSI Approved',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Topic :: Software Development',
         'Topic :: Scientific/Engineering',
         'Development Status :: 4 - Beta',
