@@ -10,16 +10,20 @@ This module implements global and local gefura. Both directed and
 undirected, as well as weighted and unweighted networks are supported.
 
 """
+import networkx as nx
 from collections import defaultdict
 from itertools import combinations, product
 from networkx.algorithms.centrality.betweenness import (
     _single_source_shortest_path_basic,
     _single_source_dijkstra_path_basic,
 )
+from typing import Iterable, Union, Optional, Literal
 
 
-__all__ = ["global_gefura", "local_gefura",
-           "decouple_overlap", "aggregate_overlap"]
+__all__ = ["global_gefura", "local_gefura", "decouple_overlap", "aggregate_overlap"]
+
+
+Node = Union[str, int]
 
 
 def _groups_per_node(groups):
@@ -60,7 +64,13 @@ def aggregate_overlap(gamma):
     return gamma2
 
 
-def global_gefura(G, groups, weight=None, normalized=True):
+def global_gefura(
+    G: nx.Graph,
+    groups: Iterable[set[Node]],
+    /,
+    weight: Optional[str] = None,
+    normalized: bool = True,
+):
     """Determine global gefura measure of each node
 
     This function handles both weighted and unweighted networks, directed and
@@ -119,7 +129,13 @@ def global_gefura(G, groups, weight=None, normalized=True):
     return gamma
 
 
-def _local_gefura(G, groups, weight=None, normalized=True):
+def _local_gefura(
+    G: nx.Graph,
+    groups: Iterable[set[Node]],
+    /,
+    weight: Optional[str] = None,
+    normalized: bool = True,
+):
     gamma = dict.fromkeys(G, 0)
     # Make mapping node -> group.
     # This assumes that groups are disjoint.
@@ -147,7 +163,14 @@ def _local_gefura(G, groups, weight=None, normalized=True):
     return gamma
 
 
-def local_gefura(G, groups, weight=None, normalized=True, direction="out"):
+def local_gefura(
+    G: nx.Graph,
+    groups: Iterable[set[Node]],
+    /,
+    weight: Optional[str] = None,
+    normalized: bool = True,
+    direction: Literal["in", "out", "all"] = "out",
+):
     """Determine local gefura measure of each node
 
     This function handles both weighted and unweighted networks, directed and
