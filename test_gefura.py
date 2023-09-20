@@ -3,7 +3,7 @@ import itertools
 import networkx as nx
 import pytest
 
-from gefura import global_gefura, local_gefura, decouple_overlap, aggregate_overlap
+from gefura import global_gefura, local_gefura
 
 
 # Format: (list of edges, node to gefura value dict, kwargs, ID)
@@ -225,6 +225,7 @@ def test_local_line_graph():
 
 
 def test_local_directed_wrong_direction_value():
+    
     with pytest.raises(ValueError):
         local_gefura(nx.DiGraph(), [], direction="foobar")
 
@@ -268,9 +269,7 @@ class TestOverlappingLineGraph:
 
     def test_unnormalized_global(self):
         known = {1: 0, 2: 3, 3: 5, 4: 0}
-        G, groups = decouple_overlap(self.G, self.groups)
-        gamma = global_gefura(G, groups, normalized=False)
-        gamma = aggregate_overlap(gamma)
+        gamma = global_gefura(self.G, self.groups, normalized=False)
         assert known == pytest.approx(gamma)
 
     def test_unnormalized_local(self):
@@ -284,8 +283,7 @@ class TestOverlappingLineGraph:
             (4, 1): 0,
             (4, 2): 0,
         }
-        G, groups = decouple_overlap(self.G, self.groups)
-        gamma = local_gefura(G, groups, normalized=False)
+        gamma = local_gefura(self.G, self.groups, normalized=False)
         assert known == pytest.approx(gamma)
 
 

@@ -20,7 +20,7 @@ from networkx.algorithms.centrality.betweenness import (
 from typing import Iterable, Union, Optional, Literal
 
 
-__all__ = ["global_gefura", "local_gefura", "decouple_overlap", "aggregate_overlap"]
+__all__ = ["global_gefura", "local_gefura"]
 
 
 Node = Union[str, int]
@@ -64,7 +64,7 @@ def aggregate_overlap(gamma):
     return gamma2
 
 
-def global_gefura(
+def global_gefura_no_overlap(
     G: nx.Graph,
     groups: Iterable[set[Node]],
     /,
@@ -129,7 +129,7 @@ def global_gefura(
     return gamma
 
 
-def _local_gefura(
+def _local_gefura_no_overlap(
     G: nx.Graph,
     groups: Iterable[set[Node]],
     /,
@@ -163,7 +163,7 @@ def _local_gefura(
     return gamma
 
 
-def local_gefura(
+def local_gefura_no_overlap(
     G: nx.Graph,
     groups: Iterable[set[Node]],
     /,
@@ -208,17 +208,19 @@ def local_gefura(
 
     """
     if not G.is_directed() or direction == "out":
-        return _local_gefura(G, groups, weight, normalized)
+        return _local_gefura_no_overlap(G, groups, weight, normalized)
 
     if direction not in ("in", "all"):
         raise ValueError("direction should be either 'in', 'out' or 'all'.")
 
-    gamma_in = _local_gefura(G.reverse(copy=False), groups, weight, normalized)
+    gamma_in = _local_gefura_no_overlap(
+        G.reverse(copy=False), groups, weight, normalized
+    )
     if direction == "in":
         return gamma_in
     else:
         # 'all' is the sum of 'in' and 'out'
-        gamma_out = _local_gefura(G, groups, weight, normalized)
+        gamma_out = _local_gefura_no_overlap(G, groups, weight, normalized)
         norm = 2 if normalized else 1  # Count both A -> gamma and gamma -> A
         print(gamma_in, gamma_out)
         return {k: (gamma_in[k] + gamma_out[k]) / norm for k in gamma_in}
@@ -265,11 +267,11 @@ def groups_overlap(G: nx.Graph, groups: Iterable[set[Node]]):
     if set(G) != all_group_nodes:
         msg = "Node set of graph different from nodes in groups"
         raise ValueError(msg)
-    
+
     return len(all_group_nodes) < sum(len(group) for group in groups)
 
 
-def outer_global_gefura(
+def global_gefura(
     G: nx.Graph,
     groups: Iterable[set[Node]],
     /,
@@ -279,12 +281,12 @@ def outer_global_gefura(
     kwargs = dict(weight=weight, normalized=normalized)
     if groups_overlap(G, groups):
         decoupled_G, decoupled_groups = decouple_overlap(G, groups)
-        gamma = global_gefura(decoupled_G, decoupled_groups, **kwargs)
+        gamma = global_gefura_no_overlap(decoupled_G, decoupled_groups, **kwargs)
         return aggregate_overlap(gamma)
-    return global_gefura(G, groups, weight=weight, **kwargs)
+    return global_gefura_no_overlap(G, groups, **kwargs)
 
 
-def outer_local_gefura(
+def local_gefura(
     G: nx.Graph,
     groups: Iterable[set[Node]],
     /,
@@ -295,6 +297,6 @@ def outer_local_gefura(
     kwargs = dict(weight=weight, normalized=normalized, direction=direction)
     if groups_overlap(G, groups):
         decoupled_G, decoupled_groups = decouple_overlap(G, groups)
-        gamma = local_gefura(decoupled_G, decoupled_groups, **kwargs)
+        gamma = local_gefura_no_overlap(decoupled_G, decoupled_groups, **kwargs)
         return aggregate_overlap(gamma)
-    return local_gefura(G, groups, **kwargs)
+    return local_gefura_no_overlap(G, groups, **kwargs)
