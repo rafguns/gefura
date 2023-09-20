@@ -225,9 +225,8 @@ def test_local_line_graph():
 
 
 def test_local_directed_wrong_direction_value():
-    
     with pytest.raises(ValueError):
-        local_gefura(nx.DiGraph(), [], direction="foobar")
+        local_gefura(nx.DiGraph(), [set()], direction="foobar")
 
 
 def test_local_directed():
