@@ -291,4 +291,4 @@ def test_overlap_simple():
     G.add_edges_from([(1, 2), (2, 3)])
     groups = [{1, 2}, {2, 3}]
     known = {1: 0, 2: 1, 3: 0}
-    assert known == pytest.approx(global_gefura(G, groups))
+    assert known == pytest.approx(global_gefura(G, groups, normalized=False))
