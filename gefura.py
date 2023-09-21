@@ -218,12 +218,11 @@ def local_gefura_no_overlap(
     )
     if direction == "in":
         return gamma_in
-    else:
-        # 'all' is the sum of 'in' and 'out'
-        gamma_out = _local_gefura_no_overlap(G, groups, weight, normalized)
-        norm = 2 if normalized else 1  # Count both A -> gamma and gamma -> A
-        print(gamma_in, gamma_out)
-        return {k: (gamma_in[k] + gamma_out[k]) / norm for k in gamma_in}
+
+    # 'all' is the sum of 'in' and 'out'
+    gamma_out = _local_gefura_no_overlap(G, groups, weight, normalized)
+    norm = 2 if normalized else 1  # Count both A -> gamma and gamma -> A
+    return {k: (gamma_in[k] + gamma_out[k]) / norm for k in gamma_in}
 
 
 def rescale_global(gamma, G, groups, normalized):
