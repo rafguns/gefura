@@ -274,7 +274,7 @@ def test_overlap_simple():
     G.add_edges_from([(1, 2), (2, 3)])
     groups = [{1, 2}, {2, 3}]
     known = {1: 0, 2: 1, 3: 0}
-    assert known == pytest.approx(global_gefura(G, groups))
+    assert global_gefura(G, groups) == pytest.approx(known)
 
 
 class TestOverlappingLineGraph:
@@ -286,13 +286,13 @@ class TestOverlappingLineGraph:
 
     def test_unnormalized(self):
         known = {1: 0, 2: 3, 3: 5, 4: 0}
-        assert known == pytest.approx(
-            global_gefura(self.G, self.groups, normalized=False)
+        assert global_gefura(self.G, self.groups, normalized=False) == pytest.approx(
+            known
         )
 
     def test_normalized(self):
         known = {1: 0, 2: 0.5, 3: 5 / 6, 4: 0}
-        assert known == pytest.approx(global_gefura(self.G, self.groups))
+        assert global_gefura(self.G, self.groups) == pytest.approx(known)
 
 
 class TestOverlap:
@@ -324,8 +324,8 @@ class TestOverlap:
             7: 5 / 3,
             8: 7 / 6,
         }
-        assert known == pytest.approx(
-            global_gefura(self.G, self.groups, normalized=False)
+        assert global_gefura(self.G, self.groups, normalized=False) == pytest.approx(
+            known
         )
 
     def test_normalized(self):
@@ -339,4 +339,4 @@ class TestOverlap:
             7: 5 / 84,
             8: 7 / 168,
         }
-        assert known == pytest.approx(global_gefura(self.G, self.groups))
+        assert global_gefura(self.G, self.groups) == pytest.approx(known)
