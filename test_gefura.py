@@ -5,7 +5,6 @@ import pytest
 
 from gefura import global_gefura, local_gefura
 
-
 # Format: (list of edges, node to gefura value dict, kwargs, ID)
 # We follow the convention that nodes that start with the same character
 # belong to the same group.
@@ -76,7 +75,7 @@ def group_nodes_by_first_char(G):
     return [set(grp[1]) for grp in itertools.groupby(sorted(G), key=lambda x: x[0])]
 
 
-@pytest.mark.parametrize("edges,expected,kwargs", global_gefura_data)
+@pytest.mark.parametrize(("edges","expected","kwargs"), global_gefura_data)
 def test_global_gefura(edges, expected, kwargs):
     G = nx.Graph()
     G.add_edges_from(edges)
@@ -169,7 +168,7 @@ class TestWeightedGraph:
         assert gamma == pytest.approx(known_vals)
 
     def test_local(self):
-        known_vals = dict(a1=1.5, a2=0.5, b1=2, b2=0.5, b3=0.5)
+        known_vals = {"a1":1.5, "a2":0.5, "b1":2, "b2":0.5, "b3":0.5}
 
         gamma = local_gefura(self.G, self.groups, weight="weight", normalized=False)
         assert gamma == pytest.approx(known_vals)
@@ -223,19 +222,20 @@ def test_local_line_graph():
 
     assert local_gefura(G, groups, normalized=False) == pytest.approx(known_vals)
 
+wrong_node_set_msg = "Nodes in G and nodes in groups.*"
 
 def test_wrong_node_set_global():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=wrong_node_set_msg):
         global_gefura(nx.Graph(), [{1}])
 
 
 def test_wrong_node_set_local():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=wrong_node_set_msg):
         local_gefura(nx.Graph(), [{1}])
 
 
 def test_local_directed_wrong_direction_value():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Direction should be.*"):
         local_gefura(nx.DiGraph(), [], direction="foobar")
 
 
