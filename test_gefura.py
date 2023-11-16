@@ -83,16 +83,28 @@ def test_global_gefura(edges, expected, kwargs):
 
     assert global_gefura(G, groups, **kwargs) == pytest.approx(expected)
 
-
-def test_singleton_groups():
+@pytest.fixture()
+def graph_with_singleton_groups():
     G = nx.Graph()
     G.add_edge(1, 2)
-    groups = [{1}, {2}]
-    expected = {1: 0.0, 2: 0.0}
+
+    return G, [{1}, {2}], {1: 0.0, 2: 0.0}
+
+
+def test_singleton_groups_global(graph_with_singleton_groups):
+    G, groups, expected = graph_with_singleton_groups
 
     assert global_gefura(G, groups, normalized=False) == pytest.approx(expected)
     # Normalization should not throw ZeroDivisionError
     assert global_gefura(G, groups) == pytest.approx(expected)
+
+
+def test_singleton_groups_local(graph_with_singleton_groups):
+    G, groups, expected = graph_with_singleton_groups
+
+    assert local_gefura(G, groups, normalized=False) == pytest.approx(expected)
+    # Normalization should not throw ZeroDivisionError
+    assert local_gefura(G, groups) == pytest.approx(expected)
 
 
 class TestDiGraph:

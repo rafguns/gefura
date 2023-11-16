@@ -7,6 +7,7 @@ Greek γεφυρα = bridge).
 
 This module implements global and local gefura. Both directed and
 undirected, as well as weighted and unweighted networks are supported.
+Overlapping groups are currently only supported for global gefura.
 
 """
 from collections import defaultdict
@@ -169,6 +170,8 @@ def local_gefura(G, groups, *, weight=None, normalized=True, direction="out"):
         msg = "Direction should be either 'in', 'out' or 'all'."
         raise ValueError(msg)
 
+    # The algorithm follows the 'out' direction in directed graphs.
+    # For 'in', we reverse the direction prior to applying the algorithm.
     gamma_in = _local_gefura(
         G.reverse(copy=False), groups, weight=weight, normalized=normalized
     )
@@ -213,9 +216,6 @@ def rescale_global(gamma, G, groups, normalized):
 def rescale_local(gamma, G, groups, normalized):
     if normalized:
         for s in G:
-            # XXX Temporary code at best!
-            # The question is: how do we define BL of a if a belongs
-            # to two or more groups? Define it vis-a-vis a specific group?
             for group in groups:
                 if s in group:
                     own_group_size = len(group)
