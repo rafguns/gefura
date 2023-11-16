@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Gefura measures for 'bridges' between node groups in a network
 
 These measures are adaptations of betweenness centrality where only shortest
@@ -18,6 +17,8 @@ from networkx.algorithms.centrality.betweenness import (
     _single_source_shortest_path_basic,
     _single_source_dijkstra_path_basic,
 )
+
+__version__ = "0.2"
 
 
 __all__ = ["global_gefura", "local_gefura"]
