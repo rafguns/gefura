@@ -11,17 +11,17 @@ classifiers = [
         "Intended Audience :: Science/Research",
         "Intended Audience :: Developers",
         "License :: OSI Approved",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Software Development",
         "Topic :: Scientific/Engineering",
         "Development Status :: 4 - Beta",
         "Natural Language :: English",
         "Operating System :: OS Independent",
 ]
-requires-python=">=3.8"
+requires-python=">=3.9"
 dependencies = [
         "networkx>=3.0",
 ]
