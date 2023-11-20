@@ -216,10 +216,7 @@ def rescale_global(gamma, G, groups, normalized):
 def rescale_local(gamma, G, groups, normalized):
     if normalized:
         for s in G:
-            for group in groups:
-                if s in group:
-                    own_group_size = len(group)
-                    break
+            own_group_size = next(len(group) for group in groups if s in group)
             factor = (own_group_size - 1) * (len(G) - own_group_size)
             try:
                 gamma[s] /= factor
