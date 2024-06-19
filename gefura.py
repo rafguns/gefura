@@ -26,7 +26,7 @@ __all__ = ["global_gefura", "local_gefura"]
 Node = Union[str, int]
 
 
-def _groups_per_node(groups):
+def _groups_per_node(groups: Iterable[set[Node]]) -> dict[Node, set[int]]:
     """Make mapping from a node to its group(s)"""
     d = defaultdict(set)
     for i, group in enumerate(groups):
@@ -41,7 +41,7 @@ def global_gefura(
     *,
     weight: Optional[str] = None,
     normalized: bool = True,
-):
+) -> dict[Node, float]:
     """Determine global gefura measure of each node
 
     This function handles both weighted and unweighted networks, directed and
@@ -99,7 +99,7 @@ def global_gefura(
             if w != s:
                 gamma[w] += deltaw
 
-    return rescale_global(gamma, G, groups, normalized)
+    return rescale_global(gamma, G, groups, normalized=normalized)
 
 
 def _local_gefura(
@@ -108,7 +108,7 @@ def _local_gefura(
     *,
     weight: Optional[str] = None,
     normalized: bool = True,
-):
+) -> dict[Node, float]:
     gamma = dict.fromkeys(G, 0)
     group_of = _groups_per_node(groups)
     if set(group_of) != set(G):
@@ -137,7 +137,7 @@ def _local_gefura(
             if w != s and i == 0:
                 gamma[w] += delta[w]
 
-    return rescale_local(gamma, G, groups, normalized)
+    return rescale_local(gamma, G, groups, normalized=normalized)
 
 
 def local_gefura(
@@ -147,7 +147,7 @@ def local_gefura(
     weight: Optional[str] = None,
     normalized: bool = True,
     direction: Literal["in", "out", "all"] = "out",
-):
+) -> dict[Node, float]:
     """Determine local gefura measure of each node
 
     This function handles both weighted and unweighted networks, directed and
@@ -206,7 +206,13 @@ def local_gefura(
     return {k: (gamma_in[k] + gamma_out[k]) / norm for k in gamma_in}
 
 
-def rescale_global(gamma, G, groups, normalized):
+def rescale_global(
+    gamma: dict[Node, float],
+    G: nx.Graph,
+    groups: Iterable[set[Node]],
+    *,
+    normalized: bool,
+) -> dict[Node, float]:
     # Since all shortest paths are counted twice if undirected, we divide by 2.
     # Only do this in the unnormalized case. If normalized, we need to account
     # for both group A -> B and B -> A.
@@ -234,7 +240,13 @@ def rescale_global(gamma, G, groups, normalized):
     return gamma
 
 
-def rescale_local(gamma, G, groups, normalized):
+def rescale_local(
+    gamma: dict[Node, float],
+    G: nx.Graph,
+    groups: Iterable[set[Node]],
+    *,
+    normalized: bool,
+) -> dict[Node, float]:
     if normalized:
         for s in G:
             own_group_size = next(len(group) for group in groups if s in group)
