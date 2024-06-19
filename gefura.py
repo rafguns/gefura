@@ -10,14 +10,13 @@ undirected, as well as weighted and unweighted networks are supported.
 Overlapping groups are currently only supported for global gefura.
 
 """
-from collections import defaultdict
+from collections import defaultdict, deque
 from itertools import combinations
 from typing import Iterable, Literal, Optional, Union
 
 import networkx as nx
 from networkx.algorithms.centrality.betweenness import (
     _single_source_dijkstra_path_basic,
-    _single_source_shortest_path_basic,
 )
 
 __version__ = "0.2"
@@ -35,12 +34,44 @@ def _groups_per_node(groups: Iterable[set[Node]]) -> dict[Node, set[int]]:
     return d
 
 
+def _single_source_shortest_path_basic(G, s, max_path_length=None):
+    """Adapted from networkx.algorithms.centrality.betweenness
+
+    Includes optional maximum path length
+
+    """
+    S = []
+    P = {}
+    for v in G:
+        P[v] = []
+    sigma = dict.fromkeys(G, 0.0)
+    D = {}
+    sigma[s] = 1.0
+    D[s] = 0
+    Q = deque([s])
+    while Q:  # use BFS to find shortest paths
+        v = Q.popleft()
+        S.append(v)
+        Dv = D[v]
+        sigmav = sigma[v]
+        for w in G[v]:
+            if w not in D:
+                D[w] = Dv + 1
+                if max_path_length is None or D[w] <= max_path_length:
+                    Q.append(w)
+            if D[w] == Dv + 1:  # this is a shortest path, count paths
+                sigma[w] += sigmav
+                P[w].append(v)  # predecessors
+    return S, P, sigma, D
+
+
 def global_gefura(
     G: nx.Graph,
     groups: Iterable[set[Node]],
     *,
     weight: Optional[str] = None,
     normalized: bool = True,
+    max_path_length: Optional[int] = None,
 ) -> dict[Node, float]:
     """Determine global gefura measure of each node
 
@@ -79,7 +110,7 @@ def global_gefura(
 
     for s in G:
         if weight is None:
-            S, P, sigma, _ = _single_source_shortest_path_basic(G, s)
+            S, P, sigma, _ = _single_source_shortest_path_basic(G, s, max_path_length)
         else:
             S, P, sigma, _ = _single_source_dijkstra_path_basic(G, s, weight)
 
