@@ -75,13 +75,14 @@ def group_nodes_by_first_char(G):
     return [set(grp[1]) for grp in itertools.groupby(sorted(G), key=lambda x: x[0])]
 
 
-@pytest.mark.parametrize(("edges","expected","kwargs"), global_gefura_data)
+@pytest.mark.parametrize(("edges", "expected", "kwargs"), global_gefura_data)
 def test_global_gefura(edges, expected, kwargs):
     G = nx.Graph()
     G.add_edges_from(edges)
     groups = group_nodes_by_first_char(G)
 
     assert global_gefura(G, groups, **kwargs) == pytest.approx(expected)
+
 
 @pytest.fixture()
 def graph_with_singleton_groups():
@@ -107,115 +108,131 @@ def test_singleton_groups_local(graph_with_singleton_groups):
     assert local_gefura(G, groups) == pytest.approx(expected)
 
 
-class TestDiGraph:
-    def setup(self):
-        edges = [
-            ("a1", "a2"),
-            ("a1", "b2"),
-            ("a2", "a1"),
-            ("a2", "b1"),
-            ("b1", "a1"),
-            ("b1", "b2"),
-        ]
-        self.G = nx.DiGraph()
-        self.G.add_edges_from(edges)
-        self.groups = [{"a1", "a2"}, {"b1", "b2"}]
-
-    def test_global(self):
-        known_vals_unnormalized = {"a1": 1.5, "a2": 1, "b1": 0.5, "b2": 0}
-        known_vals_normalized = {"a1": 0.375, "a2": 0.25, "b1": 0.125, "b2": 0}
-
-        gamma = global_gefura(self.G, self.groups, normalized=False)
-        assert gamma == pytest.approx(known_vals_unnormalized)
-        assert global_gefura(self.G, self.groups) == pytest.approx(
-            known_vals_normalized
-        )
-
-    def test_local(self):
-        known_vals_unnormalized_out = {"a1": 0.5, "a2": 1, "b1": 0, "b2": 0}
-        known_vals_unnormalized_in = {"a1": 1, "a2": 0, "b1": 0.5, "b2": 0}
-        known_vals_unnormalized_all = {"a1": 1.5, "a2": 1, "b1": 0.5, "b2": 0}
-        known_vals_normalized_out = {"a1": 0.25, "a2": 0.5, "b1": 0, "b2": 0}
-        known_vals_normalized_in = {"a1": 0.5, "a2": 0, "b1": 0.25, "b2": 0}
-        known_vals_normalized_all = {"a1": 0.375, "a2": 0.25, "b1": 0.125, "b2": 0}
-
-        gamma_out = local_gefura(self.G, self.groups, normalized=False)
-        assert gamma_out == pytest.approx(known_vals_unnormalized_out)
-        gamma_in = local_gefura(self.G, self.groups, normalized=False, direction="in")
-        assert gamma_in == pytest.approx(known_vals_unnormalized_in)
-        gamma_all = local_gefura(self.G, self.groups, normalized=False, direction="all")
-        assert gamma_all == pytest.approx(known_vals_unnormalized_all)
-
-        gamma_out = local_gefura(self.G, self.groups)
-        assert gamma_out == pytest.approx(known_vals_normalized_out)
-        gamma_in = local_gefura(self.G, self.groups, direction="in")
-        assert gamma_in == pytest.approx(known_vals_normalized_in)
-        gamma_all = local_gefura(self.G, self.groups, direction="all")
-        assert gamma_all == pytest.approx(known_vals_normalized_all)
+@pytest.fixture()
+def digraph():
+    edges = [
+        ("a1", "a2"),
+        ("a1", "b2"),
+        ("a2", "a1"),
+        ("a2", "b1"),
+        ("b1", "a1"),
+        ("b1", "b2"),
+    ]
+    G = nx.DiGraph()
+    G.add_edges_from(edges)
+    return G
 
 
-class TestWeightedGraph:
-    def setup(self):
-        edges = [
-            ("a1", "a2", 1),
-            ("a2", "b2", 3),
-            ("a1", "b1", 1),
-            ("b1", "b3", 2),
-            ("b2", "b3", 1),
-        ]
-        self.G = nx.Graph()
-        self.G.add_weighted_edges_from(edges)
-        self.groups = [{"a1", "a2"}, {"b1", "b2", "b3"}]
+def test_digraph_global(digraph):
+    groups = group_nodes_by_first_char(digraph)
 
-    def test_global(self):
-        known_vals = {"a1": 0.5, "a2": 1 / 6, "b1": 0.5, "b2": 0.125, "b3": 0.125}
+    known_vals_unnormalized = {"a1": 1.5, "a2": 1, "b1": 0.5, "b2": 0}
+    known_vals_normalized = {"a1": 0.375, "a2": 0.25, "b1": 0.125, "b2": 0}
 
-        gamma = global_gefura(self.G, self.groups, weight="weight")
-        assert gamma == pytest.approx(known_vals)
-
-    def test_global_ignore_weights(self):
-        known_vals = {"a1": 1 / 3, "a2": 1 / 3, "b1": 0.25, "b2": 0.25, "b3": 0}
-
-        gamma = global_gefura(self.G, self.groups)
-        assert gamma == pytest.approx(known_vals)
-
-    def test_local(self):
-        known_vals = {"a1":1.5, "a2":0.5, "b1":2, "b2":0.5, "b3":0.5}
-
-        gamma = local_gefura(self.G, self.groups, weight="weight", normalized=False)
-        assert gamma == pytest.approx(known_vals)
+    gamma = global_gefura(digraph, groups, normalized=False)
+    assert gamma == pytest.approx(known_vals_unnormalized)
+    assert global_gefura(digraph, groups) == pytest.approx(known_vals_normalized)
 
 
-class TestLocal:
-    def setup(self):
-        edges = [
-            ("a1", "b1"),
-            ("a2", "b1"),
-            ("b1", "b2"),
-            ("b2", "c1"),
-            ("b2", "c2"),
-            ("a1", "c1"),
-        ]
-        self.G = nx.Graph()
-        self.G.add_edges_from(edges)
-        self.groups = [{"a1", "a2"}, {"b1", "b2"}, {"c1", "c2"}]
+def test_digraph_local(digraph):
+    groups = group_nodes_by_first_char(digraph)
 
-    def test_normalized(self):
-        known_gamma = {
-            "a1": 0.125,
-            "a2": 0,
-            "b1": 0.375,
-            "b2": 0.375,
-            "c1": 0.125,
-            "c2": 0,
-        }
-        gamma = local_gefura(self.G, self.groups)
-        assert gamma == pytest.approx(known_gamma)
+    known_vals_unnormalized_out = {"a1": 0.5, "a2": 1, "b1": 0, "b2": 0}
+    known_vals_unnormalized_in = {"a1": 1, "a2": 0, "b1": 0.5, "b2": 0}
+    known_vals_unnormalized_all = {"a1": 1.5, "a2": 1, "b1": 0.5, "b2": 0}
+    known_vals_normalized_out = {"a1": 0.25, "a2": 0.5, "b1": 0, "b2": 0}
+    known_vals_normalized_in = {"a1": 0.5, "a2": 0, "b1": 0.25, "b2": 0}
+    known_vals_normalized_all = {"a1": 0.375, "a2": 0.25, "b1": 0.125, "b2": 0}
 
-    def test_unnormalized(self):
-        known_gamma = {"a1": 0.5, "a2": 0, "b1": 1.5, "b2": 1.5, "c1": 0.5, "c2": 0}
-        gamma = local_gefura(self.G, self.groups, normalized=False)
-        assert gamma == pytest.approx(known_gamma)
+    gamma_out = local_gefura(digraph, groups, normalized=False)
+    assert gamma_out == pytest.approx(known_vals_unnormalized_out)
+    gamma_in = local_gefura(digraph, groups, normalized=False, direction="in")
+    assert gamma_in == pytest.approx(known_vals_unnormalized_in)
+    gamma_all = local_gefura(digraph, groups, normalized=False, direction="all")
+    assert gamma_all == pytest.approx(known_vals_unnormalized_all)
+
+    gamma_out = local_gefura(digraph, groups)
+    assert gamma_out == pytest.approx(known_vals_normalized_out)
+    gamma_in = local_gefura(digraph, groups, direction="in")
+    assert gamma_in == pytest.approx(known_vals_normalized_in)
+    gamma_all = local_gefura(digraph, groups, direction="all")
+    assert gamma_all == pytest.approx(known_vals_normalized_all)
+
+
+@pytest.fixture()
+def weighted_graph():
+    edges = [
+        ("a1", "a2", 1),
+        ("a2", "b2", 3),
+        ("a1", "b1", 1),
+        ("b1", "b3", 2),
+        ("b2", "b3", 1),
+    ]
+    G = nx.Graph()
+    G.add_weighted_edges_from(edges)
+    return G
+
+
+def test_weighted_graph_global(weighted_graph):
+    groups = group_nodes_by_first_char(weighted_graph)
+
+    known_vals = {"a1": 0.5, "a2": 1 / 6, "b1": 0.5, "b2": 0.125, "b3": 0.125}
+    gamma = global_gefura(weighted_graph, groups, weight="weight")
+    assert gamma == pytest.approx(known_vals)
+
+
+def test_global_ignore_weights(weighted_graph):
+    groups = group_nodes_by_first_char(weighted_graph)
+
+    known_vals = {"a1": 1 / 3, "a2": 1 / 3, "b1": 0.25, "b2": 0.25, "b3": 0}
+    gamma = global_gefura(weighted_graph, groups)
+    assert gamma == pytest.approx(known_vals)
+
+
+def test_weighted_grlocal(weighted_graph):
+    groups = group_nodes_by_first_char(weighted_graph)
+
+    known_vals = {"a1": 1.5, "a2": 0.5, "b1": 2, "b2": 0.5, "b3": 0.5}
+    gamma = local_gefura(weighted_graph, groups, weight="weight", normalized=False)
+    assert gamma == pytest.approx(known_vals)
+
+
+@pytest.fixture()
+def small_graph_3_groups():
+    edges = [
+        ("a1", "b1"),
+        ("a2", "b1"),
+        ("b1", "b2"),
+        ("b2", "c1"),
+        ("b2", "c2"),
+        ("a1", "c1"),
+    ]
+    G = nx.Graph()
+    G.add_edges_from(edges)
+    return G
+
+
+def test_local_normalized(small_graph_3_groups):
+    groups = group_nodes_by_first_char(small_graph_3_groups)
+
+    known_gamma = {
+        "a1": 0.125,
+        "a2": 0,
+        "b1": 0.375,
+        "b2": 0.375,
+        "c1": 0.125,
+        "c2": 0,
+    }
+    gamma = local_gefura(small_graph_3_groups, groups)
+    assert gamma == pytest.approx(known_gamma)
+
+
+def test_unnormalized(small_graph_3_groups):
+    groups = group_nodes_by_first_char(small_graph_3_groups)
+
+    known_gamma = {"a1": 0.5, "a2": 0, "b1": 1.5, "b2": 1.5, "c1": 0.5, "c2": 0}
+    gamma = local_gefura(small_graph_3_groups, groups, normalized=False)
+    assert gamma == pytest.approx(known_gamma)
 
 
 def test_local_line_graph():
@@ -234,7 +251,9 @@ def test_local_line_graph():
 
     assert local_gefura(G, groups, normalized=False) == pytest.approx(known_vals)
 
+
 wrong_node_set_msg = "Nodes in G and nodes in groups.*"
+
 
 def test_wrong_node_set_global():
     with pytest.raises(ValueError, match=wrong_node_set_msg):
@@ -289,66 +308,74 @@ def test_overlap_simple():
     assert global_gefura(G, groups) == pytest.approx(known)
 
 
-class TestOverlappingLineGraph:
-    def setup(self):
-        edges = [(1, 2), (2, 3), (3, 4)]
-        self.groups = [{1, 2, 3}, {2, 3, 4}, {4}]
-        self.G = nx.Graph()
-        self.G.add_edges_from(edges)
-
-    def test_unnormalized(self):
-        known = {1: 0, 2: 3, 3: 5, 4: 0}
-        assert global_gefura(self.G, self.groups, normalized=False) == pytest.approx(
-            known
-        )
-
-    def test_normalized(self):
-        known = {1: 0, 2: 0.5, 3: 5 / 6, 4: 0}
-        assert global_gefura(self.G, self.groups) == pytest.approx(known)
+@pytest.fixture()
+def overlapping_line_graph():
+    edges = [(1, 2), (2, 3), (3, 4)]
+    groups = [{1, 2, 3}, {2, 3, 4}, {4}]
+    G = nx.Graph()
+    G.add_edges_from(edges)
+    return G, groups
 
 
-class TestOverlap:
-    def setup(self):
-        edges = [
-            (1, 2),
-            (1, 3),
-            (2, 3),
-            (2, 6),
-            (3, 5),
-            (4, 5),
-            (5, 6),
-            (5, 7),
-            (6, 8),
-            (7, 8),
-        ]
-        self.groups = [{1, 2, 3}, {2, 3, 4, 5, 6}, {4, 7, 8}]
-        self.G = nx.Graph()
-        self.G.add_edges_from(edges)
+def test_overlapping_line_graph_unnormalized(overlapping_line_graph):
+    G, groups = overlapping_line_graph
 
-    def test_unnormalized(self):
-        known = {
-            1: 0,
-            2: 19 / 6,
-            3: 20 / 3,
-            4: 0,
-            5: 53 / 3,
-            6: 26 / 3,
-            7: 5 / 3,
-            8: 7 / 6,
-        }
-        assert global_gefura(self.G, self.groups, normalized=False) == pytest.approx(
-            known
-        )
+    known = {1: 0, 2: 3, 3: 5, 4: 0}
+    assert global_gefura(G, groups, normalized=False) == pytest.approx(known)
 
-    def test_normalized(self):
-        known = {
-            1: 0,
-            2: 19 / 144,
-            3: 5 / 18,
-            4: 0,
-            5: 53 / 90,
-            6: 26 / 90,
-            7: 5 / 84,
-            8: 7 / 168,
-        }
-        assert global_gefura(self.G, self.groups) == pytest.approx(known)
+
+def test_overlapping_line_graph_normalized(overlapping_line_graph):
+    G, groups = overlapping_line_graph
+
+    known = {1: 0, 2: 0.5, 3: 5 / 6, 4: 0}
+    assert global_gefura(G, groups) == pytest.approx(known)
+
+
+@pytest.fixture()
+def overlapping_graph():
+    edges = [
+        (1, 2),
+        (1, 3),
+        (2, 3),
+        (2, 6),
+        (3, 5),
+        (4, 5),
+        (5, 6),
+        (5, 7),
+        (6, 8),
+        (7, 8),
+    ]
+    groups = [{1, 2, 3}, {2, 3, 4, 5, 6}, {4, 7, 8}]
+    G = nx.Graph()
+    G.add_edges_from(edges)
+    return G, groups
+
+
+def test_overlapping_graph_unnormalized(overlapping_graph):
+    G, groups = overlapping_graph
+    known = {
+        1: 0,
+        2: 19 / 6,
+        3: 20 / 3,
+        4: 0,
+        5: 53 / 3,
+        6: 26 / 3,
+        7: 5 / 3,
+        8: 7 / 6,
+    }
+    assert global_gefura(G, groups, normalized=False) == pytest.approx(known)
+
+
+def test_overlapping_graph_normalized(overlapping_graph):
+    G, groups = overlapping_graph
+    known = {
+        1: 0,
+        2: 19 / 144,
+        3: 5 / 18,
+        4: 0,
+        5: 53 / 90,
+        6: 26 / 90,
+        7: 5 / 84,
+        8: 7 / 168,
+    }
+    assert global_gefura(G, groups) == pytest.approx(known)
