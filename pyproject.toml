@@ -3,7 +3,7 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "linkpred"
+name = "gefura"
 authors = [{name = "Raf Guns", email = "raf.guns@uantwerpen.be"}]
 readme = "README.md"
 dynamic = ["version", "description"]
