@@ -189,7 +189,7 @@ def test_global_ignore_weights(weighted_graph):
     assert gamma == pytest.approx(known_vals)
 
 
-def test_weighted_grlocal(weighted_graph):
+def test_weighted_graph_local(weighted_graph):
     groups = group_nodes_by_first_char(weighted_graph)
 
     known_vals = {"a1": 1.5, "a2": 0.5, "b1": 2, "b2": 0.5, "b3": 0.5}
@@ -227,12 +227,32 @@ def test_local_normalized(small_graph_3_groups):
     assert gamma == pytest.approx(known_gamma)
 
 
-def test_unnormalized(small_graph_3_groups):
+def test_local_unnormalized(small_graph_3_groups):
     groups = group_nodes_by_first_char(small_graph_3_groups)
 
     known_gamma = {"a1": 0.5, "a2": 0, "b1": 1.5, "b2": 1.5, "c1": 0.5, "c2": 0}
     gamma = local_gefura(small_graph_3_groups, groups, normalized=False)
     assert gamma == pytest.approx(known_gamma)
+
+
+def test_global_max_path_length(small_graph_3_groups):
+    groups = group_nodes_by_first_char(small_graph_3_groups)
+
+    # max_path_length of 2
+    known_gamma = {"a1": 0.5, "a2": 0, "b1": 1.5, "b2": 1.5, "c1": 0.5, "c2": 0}
+    assert global_gefura(
+        small_graph_3_groups, groups, normalized=False, max_path_length=2
+    ) == pytest.approx(known_gamma)
+
+
+def test_local_max_path_length(small_graph_3_groups):
+    groups = group_nodes_by_first_char(small_graph_3_groups)
+
+    # max_path_length of 2
+    known_gamma = {"a1": 0.5, "a2": 0, "b1": 1.5, "b2": 1.5, "c1": 0.5, "c2": 0}
+    assert global_gefura(
+        small_graph_3_groups, groups, normalized=False, max_path_length=2
+    ) == pytest.approx(known_gamma)
 
 
 def test_local_line_graph():
@@ -379,3 +399,19 @@ def test_overlapping_graph_normalized(overlapping_graph):
         8: 7 / 168,
     }
     assert global_gefura(G, groups) == pytest.approx(known)
+
+
+@pytest.mark.parametrize(("n", "m"), list(zip(range(10, 50), range(20, 100, 2))))
+def test_max_path_length_long_path(n, m):
+    def chunks(lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i : i + n]
+
+    graph = nx.gnm_random_graph(n, m, seed=42)
+    nodes = list(graph)
+    groups = [set(chunk) for chunk in chunks(nodes, 4)]
+
+    assert global_gefura(graph, groups, max_path_length=n + 1) == global_gefura(
+        graph, groups
+    )
