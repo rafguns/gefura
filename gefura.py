@@ -18,7 +18,7 @@ from typing import Literal
 
 import networkx as nx
 from networkx.algorithms.centrality.betweenness import (
-    _single_source_dijkstra_path_basic,
+    _single_source_dijkstra_path_basic,  # pyright: ignore[reportAttributeAccessIssue]
 )
 
 __version__ = "0.2"
@@ -107,7 +107,7 @@ def global_gefura(
     {0: 0.0, 1: 0.5, 2: 0.8, 3: 0.6, 4: 0.0}
 
     """
-    gamma = dict.fromkeys(G, 0)
+    gamma = dict.fromkeys(G, 0.)
     group_of = _groups_per_node(groups)
     if set(group_of) != set(G):
         msg = "Nodes in G and nodes in groups should be the same!"
@@ -120,7 +120,7 @@ def global_gefura(
             S, P, sigma, _ = _single_source_dijkstra_path_basic(G, s, weight)
 
         # Accumulation
-        delta = dict.fromkeys(G, 0)
+        delta = dict.fromkeys(G, 0.)
         s_groups = group_of[s]
         while S:
             w = S.pop()
@@ -146,7 +146,7 @@ def _local_gefura(
     normalized: bool = True,
     max_path_length: int | None = None,
 ) -> dict[Node, float]:
-    gamma = dict.fromkeys(G, 0)
+    gamma = dict.fromkeys(G, 0.)
     group_of = _groups_per_node(groups)
     if set(group_of) != set(G):
         msg = "Nodes in G and nodes in groups should be the same!"
@@ -161,7 +161,7 @@ def _local_gefura(
             S, P, sigma, _ = _single_source_dijkstra_path_basic(G, s, weight)
 
         # Accumulation
-        delta = dict.fromkeys(G, 0)
+        delta = dict.fromkeys(G, 0.)
         s_groups = group_of[s]
         while S:
             w = S.pop()
@@ -234,6 +234,7 @@ def local_gefura(
     }
     if not G.is_directed() or direction == "out":
         return _local_gefura(G, groups, **kwargs)
+    assert isinstance(G, nx.DiGraph)  # Make type checker happy
 
     if direction not in ("in", "all"):
         msg = "Direction should be either 'in', 'out' or 'all'."
