@@ -84,7 +84,7 @@ def test_global_gefura(edges, expected, kwargs):
     assert global_gefura(G, groups, **kwargs) == pytest.approx(expected)
 
 
-@pytest.fixture()
+@pytest.fixture
 def graph_with_singleton_groups():
     G = nx.Graph()
     G.add_edge(1, 2)
@@ -108,7 +108,7 @@ def test_singleton_groups_local(graph_with_singleton_groups):
     assert local_gefura(G, groups) == pytest.approx(expected)
 
 
-@pytest.fixture()
+@pytest.fixture
 def digraph():
     edges = [
         ("a1", "a2"),
@@ -159,7 +159,7 @@ def test_digraph_local(digraph):
     assert gamma_all == pytest.approx(known_vals_normalized_all)
 
 
-@pytest.fixture()
+@pytest.fixture
 def weighted_graph():
     edges = [
         ("a1", "a2", 1),
@@ -197,7 +197,7 @@ def test_weighted_graph_local(weighted_graph):
     assert gamma == pytest.approx(known_vals)
 
 
-@pytest.fixture()
+@pytest.fixture
 def small_graph_3_groups():
     edges = [
         ("a1", "b1"),
@@ -328,7 +328,7 @@ def test_overlap_simple():
     assert global_gefura(G, groups) == pytest.approx(known)
 
 
-@pytest.fixture()
+@pytest.fixture
 def overlapping_line_graph():
     edges = [(1, 2), (2, 3), (3, 4)]
     groups = [{1, 2, 3}, {2, 3, 4}, {4}]
@@ -351,7 +351,7 @@ def test_overlapping_line_graph_normalized(overlapping_line_graph):
     assert global_gefura(G, groups) == pytest.approx(known)
 
 
-@pytest.fixture()
+@pytest.fixture
 def overlapping_graph():
     edges = [
         (1, 2),
@@ -401,7 +401,9 @@ def test_overlapping_graph_normalized(overlapping_graph):
     assert global_gefura(G, groups) == pytest.approx(known)
 
 
-@pytest.mark.parametrize(("n", "m"), list(zip(range(10, 50), range(20, 100, 2))))
+@pytest.mark.parametrize(
+    ("n", "m"), list(zip(range(10, 50), range(20, 100, 2), strict=False))
+)
 def test_max_path_length_long_path(n, m):
     def chunks(lst, n):
         """Yield successive n-sized chunks from lst."""

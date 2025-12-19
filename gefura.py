@@ -10,9 +10,11 @@ undirected, as well as weighted and unweighted networks are supported.
 Overlapping groups are currently only supported for global gefura.
 
 """
+
 from collections import defaultdict, deque
+from collections.abc import Iterable
 from itertools import combinations
-from typing import Iterable, Literal, Optional, Union
+from typing import Literal
 
 import networkx as nx
 from networkx.algorithms.centrality.betweenness import (
@@ -22,7 +24,7 @@ from networkx.algorithms.centrality.betweenness import (
 __version__ = "0.2"
 __all__ = ["global_gefura", "local_gefura"]
 
-Node = Union[str, int]
+Node = str | int
 
 
 def _groups_per_node(groups: Iterable[set[Node]]) -> dict[Node, set[int]]:
@@ -69,9 +71,9 @@ def global_gefura(
     G: nx.Graph,
     groups: Iterable[set[Node]],
     *,
-    weight: Optional[str] = None,
+    weight: str | None = None,
     normalized: bool = True,
-    max_path_length: Optional[int] = None,
+    max_path_length: int | None = None,
 ) -> dict[Node, float]:
     """Determine global gefura measure of each node
 
@@ -140,9 +142,9 @@ def _local_gefura(
     G: nx.Graph,
     groups: Iterable[set[Node]],
     *,
-    weight: Optional[str] = None,
+    weight: str | None = None,
     normalized: bool = True,
-    max_path_length: Optional[int] = None,
+    max_path_length: int | None = None,
 ) -> dict[Node, float]:
     gamma = dict.fromkeys(G, 0)
     group_of = _groups_per_node(groups)
@@ -181,10 +183,10 @@ def local_gefura(
     G: nx.Graph,
     groups: Iterable[set[Node]],
     *,
-    weight: Optional[str] = None,
+    weight: str | None = None,
     normalized: bool = True,
     direction: Literal["in", "out", "all"] = "out",
-    max_path_length: Optional[int] = None,
+    max_path_length: int | None = None,
 ) -> dict[Node, float]:
     """Determine local gefura measure of each node
 
