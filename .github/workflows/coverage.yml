@@ -17,7 +17,7 @@ jobs:
     - name: Install the project
       run: uv sync --locked --all-extras --dev
     - name: Run tests
-      run: uv run pytest --cov=gefura --cov-report xml:coverage.xml --cov-report term
+      run: uv run pytest tests --cov=gefura --cov-report xml:coverage.xml --cov-report term
     - name: Upload coverage report
       uses: codecov/codecov-action@v5
       with:
