@@ -10,22 +10,24 @@ undirected, as well as weighted and unweighted networks are supported.
 Overlapping groups are currently only supported for global gefura.
 
 """
+
 from collections import defaultdict, deque
+from collections.abc import Iterable, Set
 from itertools import combinations
-from typing import Iterable, Literal, Optional, Union
+from typing import Literal
 
 import networkx as nx
 from networkx.algorithms.centrality.betweenness import (
-    _single_source_dijkstra_path_basic,
+    _single_source_dijkstra_path_basic,  # pyright: ignore[reportAttributeAccessIssue]
 )
 
 __version__ = "0.2"
 __all__ = ["global_gefura", "local_gefura"]
 
-Node = Union[str, int]
+Node = str | int
 
 
-def _groups_per_node(groups: Iterable[set[Node]]) -> dict[Node, set[int]]:
+def _groups_per_node(groups: Iterable[Set[Node]]) -> dict[Node, set[int]]:
     """Make mapping from a node to its group(s)"""
     d = defaultdict(set)
     for i, group in enumerate(groups):
@@ -67,11 +69,11 @@ def _single_source_shortest_path_basic(G, s, max_path_length=None):
 
 def global_gefura(
     G: nx.Graph,
-    groups: Iterable[set[Node]],
+    groups: Iterable[Set[Node]],
     *,
-    weight: Optional[str] = None,
+    weight: str | None = None,
     normalized: bool = True,
-    max_path_length: Optional[int] = None,
+    max_path_length: int | None = None,
 ) -> dict[Node, float]:
     """Determine global gefura measure of each node
 
@@ -105,7 +107,7 @@ def global_gefura(
     {0: 0.0, 1: 0.5, 2: 0.8, 3: 0.6, 4: 0.0}
 
     """
-    gamma = dict.fromkeys(G, 0)
+    gamma = dict.fromkeys(G, 0.)
     group_of = _groups_per_node(groups)
     if set(group_of) != set(G):
         msg = "Nodes in G and nodes in groups should be the same!"
@@ -118,7 +120,7 @@ def global_gefura(
             S, P, sigma, _ = _single_source_dijkstra_path_basic(G, s, weight)
 
         # Accumulation
-        delta = dict.fromkeys(G, 0)
+        delta = dict.fromkeys(G, 0.)
         s_groups = group_of[s]
         while S:
             w = S.pop()
@@ -138,13 +140,13 @@ def global_gefura(
 
 def _local_gefura(
     G: nx.Graph,
-    groups: Iterable[set[Node]],
+    groups: Iterable[Set[Node]],
     *,
-    weight: Optional[str] = None,
+    weight: str | None = None,
     normalized: bool = True,
-    max_path_length: Optional[int] = None,
+    max_path_length: int | None = None,
 ) -> dict[Node, float]:
-    gamma = dict.fromkeys(G, 0)
+    gamma = dict.fromkeys(G, 0.)
     group_of = _groups_per_node(groups)
     if set(group_of) != set(G):
         msg = "Nodes in G and nodes in groups should be the same!"
@@ -159,7 +161,7 @@ def _local_gefura(
             S, P, sigma, _ = _single_source_dijkstra_path_basic(G, s, weight)
 
         # Accumulation
-        delta = dict.fromkeys(G, 0)
+        delta = dict.fromkeys(G, 0.)
         s_groups = group_of[s]
         while S:
             w = S.pop()
@@ -179,12 +181,12 @@ def _local_gefura(
 
 def local_gefura(
     G: nx.Graph,
-    groups: Iterable[set[Node]],
+    groups: Iterable[Set[Node]],
     *,
-    weight: Optional[str] = None,
+    weight: str | None = None,
     normalized: bool = True,
     direction: Literal["in", "out", "all"] = "out",
-    max_path_length: Optional[int] = None,
+    max_path_length: int | None = None,
 ) -> dict[Node, float]:
     """Determine local gefura measure of each node
 
@@ -232,6 +234,7 @@ def local_gefura(
     }
     if not G.is_directed() or direction == "out":
         return _local_gefura(G, groups, **kwargs)
+    assert isinstance(G, nx.DiGraph)  # Make type checker happy
 
     if direction not in ("in", "all"):
         msg = "Direction should be either 'in', 'out' or 'all'."
@@ -253,7 +256,7 @@ def local_gefura(
 def rescale_global(
     gamma: dict[Node, float],
     G: nx.Graph,
-    groups: Iterable[set[Node]],
+    groups: Iterable[Set[Node]],
     *,
     normalized: bool,
 ) -> dict[Node, float]:
@@ -264,7 +267,6 @@ def rescale_global(
 
     for s in G:
         if normalized:
-            # All combinations of 2 groups
             group_combinations = list(combinations(groups, 2))
             ss = {s}
             factor = (
@@ -287,7 +289,7 @@ def rescale_global(
 def rescale_local(
     gamma: dict[Node, float],
     G: nx.Graph,
-    groups: Iterable[set[Node]],
+    groups: Iterable[Set[Node]],
     *,
     normalized: bool,
 ) -> dict[Node, float]:
