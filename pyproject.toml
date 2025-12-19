@@ -26,8 +26,11 @@ dependencies = [
         "networkx>=3.0",
 ]
 
-[project.optional-dependencies]
-dev = ["pytest >=7.1", "pytest-cov", "tox>=4.4"]
+[dependency-groups]
+dev = [
+    "pytest-cov>=7.0.0",
+    "pytest>=8.4.2",
+]
 
 [project.urls]
 Home = "https://github.com/rafguns/gefura/"
