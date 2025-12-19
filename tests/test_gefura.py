@@ -287,7 +287,7 @@ def test_wrong_node_set_local():
 
 def test_local_directed_wrong_direction_value():
     with pytest.raises(ValueError, match="Direction should be.*"):
-        local_gefura(nx.DiGraph(), [], direction="foobar")
+        local_gefura(nx.DiGraph(), [], direction="foobar")  # pyright: ignore[reportArgumentType]
 
 
 def test_local_directed():
@@ -317,7 +317,7 @@ def test_local_directed():
     G.add_edges_from(edges)
 
     for d, vals in (("out", known_out), ("in", known_in), ("all", known_all)):
-        assert local_gefura(G, groups, direction=d) == pytest.approx(vals)
+        assert local_gefura(G, groups, direction=d) == pytest.approx(vals)  # pyright: ignore[reportArgumentType]
 
 
 def test_overlap_simple():
