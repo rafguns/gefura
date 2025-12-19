@@ -12,7 +12,7 @@ Overlapping groups are currently only supported for global gefura.
 """
 
 from collections import defaultdict, deque
-from collections.abc import Collection, Iterable
+from collections.abc import Iterable, Set
 from itertools import combinations
 from typing import Literal
 
@@ -27,7 +27,7 @@ __all__ = ["global_gefura", "local_gefura"]
 Node = str | int
 
 
-def _groups_per_node(groups: Iterable[Collection[Node]]) -> dict[Node, set[int]]:
+def _groups_per_node(groups: Iterable[Set[Node]]) -> dict[Node, set[int]]:
     """Make mapping from a node to its group(s)"""
     d = defaultdict(set)
     for i, group in enumerate(groups):
@@ -69,7 +69,7 @@ def _single_source_shortest_path_basic(G, s, max_path_length=None):
 
 def global_gefura(
     G: nx.Graph,
-    groups: Iterable[Collection[Node]],
+    groups: Iterable[Set[Node]],
     *,
     weight: str | None = None,
     normalized: bool = True,
@@ -140,7 +140,7 @@ def global_gefura(
 
 def _local_gefura(
     G: nx.Graph,
-    groups: Iterable[Collection[Node]],
+    groups: Iterable[Set[Node]],
     *,
     weight: str | None = None,
     normalized: bool = True,
@@ -181,7 +181,7 @@ def _local_gefura(
 
 def local_gefura(
     G: nx.Graph,
-    groups: Iterable[Collection[Node]],
+    groups: Iterable[Set[Node]],
     *,
     weight: str | None = None,
     normalized: bool = True,
@@ -256,7 +256,7 @@ def local_gefura(
 def rescale_global(
     gamma: dict[Node, float],
     G: nx.Graph,
-    groups: Iterable[Collection[Node]],
+    groups: Iterable[Set[Node]],
     *,
     normalized: bool,
 ) -> dict[Node, float]:
@@ -271,7 +271,7 @@ def rescale_global(
             ss = {s}
             factor = (
                 sum(
-                    len(set(A) - ss) * len(set(B) - ss) - len(set(A) & set(B) - ss)
+                    len(A - ss) * len(B - ss) - len(A & B - ss)
                     for A, B in group_combinations
                 )
                 * base_factor
@@ -289,7 +289,7 @@ def rescale_global(
 def rescale_local(
     gamma: dict[Node, float],
     G: nx.Graph,
-    groups: Iterable[Collection[Node]],
+    groups: Iterable[Set[Node]],
     *,
     normalized: bool,
 ) -> dict[Node, float]:
